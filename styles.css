@@ -81,3 +81,26 @@ canvas{display:block;width:100%;max-width:100%;height:auto;cursor:pointer;touch-
 .ledger{font:400 12px var(--mono);color:var(--mute);background:var(--sea-2);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;line-height:1.7}
 .ledger b{color:var(--good)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- v0.3 ---------- */
+.scene{padding-top:0}
+.stats{background:rgba(5,12,22,.55);padding:6px 10px;border-radius:8px;backdrop-filter:blur(2px)}
+#cond{color:var(--lamp-soft)}
+.badge.frenzy{background:var(--lamp-soft)} .badge.fog{background:#c9d6e0} .badge.storm{background:#a9c1d6}
+.lab h3 .own,.row h3 .own{font-weight:400}
+.lab-active{display:grid;gap:4px;background:var(--sea);border-radius:8px;padding:12px}
+.lab-active .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lab-active h3{font-size:16px}
+.lab-active p,.lab-idle{margin:0;color:var(--mute);font-size:13px}
+.pips{display:flex;gap:3px;margin-top:6px}
+.pips i{width:10px;height:4px;border-radius:2px;background:var(--sea-3)} .pips i.on{background:var(--glass)}
+.savebar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+.savebtns{display:flex;gap:6px;flex-wrap:wrap}
+.ver{font:400 12px var(--mono);color:var(--mute)}
+.ghost.sm{font-size:13px;padding:6px 10px}
+#m-body{white-space:pre-line}
+#m-field{font:400 12px var(--mono);background:var(--sea);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical;width:100%;box-sizing:border-box;word-break:break-all}
+.bk{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.bk small{font:400 11px var(--mono);color:var(--mute)}
+.update{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sea-2);border:1px solid var(--glass);border-radius:10px;padding:10px 14px;font-size:14px}
+.update small{color:var(--mute)} .update .buy{min-width:0}

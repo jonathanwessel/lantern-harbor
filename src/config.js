@@ -52,3 +52,33 @@ export const ACH = [
   {id:"gold10",name:"Treasure Fleet",desc:"Catch 10 golden ships",gems:25,cur:S=>S.golden,goal:10},
   {id:"relight",name:"Rekindled",desc:"Relight the lamp once",gems:25,cur:S=>S.relights,goal:1},
 ];
+
+/* Research projects at the Harbor Observatory. Levels are permanent (they survive a relight).
+ * Cost in light = base * grow^level. Duration = time seconds * 1.6^level. */
+export const RESEARCH = [
+  {id:"mantle",name:"Incandescent Mantles",desc:"+25% light per tap per level",max:10,base:400,grow:4,time:20},
+  {id:"clock",name:"Clockwork Rotation",desc:"+25% light per second per level",max:10,base:1200,grow:4,time:30},
+  {id:"auto",name:"Clockwork Beam",desc:"The sweeping beam locks onto ships and guides them for you. Levels guide more often and pay more.",max:5,base:2500,grow:6,time:45},
+  {id:"dues",name:"Harbor Dues",desc:"+50% light from every guided ship per level",max:10,base:3000,grow:4,time:30},
+  {id:"birds",name:"Ornithology",desc:"Birds visit 30% more often and pay +50% per level",max:5,base:5000,grow:5,time:40},
+  {id:"lure",name:"Bird Lure",desc:"Birds land at the lantern on their own after a few seconds, for 60% of the reward (+10% per level). Levels make them come sooner.",max:5,base:6000,grow:5,time:45},
+  {id:"lookout",name:"Lookout Post",desc:"Golden ships appear 20% more often per level",max:5,base:8000,grow:5,time:45},
+  {id:"signals",name:"Fog Signals",desc:"Fog and storm ship bonuses +0.5x per level",max:5,base:20000,grow:6,time:60},
+  {id:"charts",name:"Gilded Charts",desc:"Golden ships pay +50% per level",max:5,base:50000,grow:6,time:60},
+  {id:"tides",name:"Tide Tables",desc:"+1 hour to the offline earnings cap per level",max:8,base:1e5,grow:5,time:90},
+  {id:"optics",name:"Lumen Optics",desc:"Each lumen is worth +2% more per level",max:5,base:1e6,grow:8,time:120,needs:S=>S.relights>0,lock:"Relight once to unlock"},
+];
+
+/* Birds that fly over the harbor. Tap one for a bonus. */
+export const BIRDS = {
+  gull:{name:"Gull",size:1,v:2.1,color:"#e9f0f7"},
+  albatross:{name:"Albatross",size:1.7,v:1.25,color:"#fff6c7"},
+  petrel:{name:"Storm Petrel",size:.85,v:3,color:"#b98cff"},
+};
+
+ACH.push(
+  {id:"birds10",name:"Birdwatcher",desc:"Catch 10 birds",gems:10,cur:S=>S.birds,goal:10},
+  {id:"albatross",name:"Wandering Wings",desc:"Catch an albatross",gems:15,cur:S=>S.albatross,goal:1},
+  {id:"storm25",name:"Any Port in a Storm",desc:"Guide 25 ships through fog or storm",gems:15,cur:S=>S.weatherShips,goal:25},
+  {id:"res10",name:"Natural Philosopher",desc:"Complete 10 research levels",gems:20,cur:S=>Object.values(S.research).reduce((a,b)=>a+b,0),goal:10},
+);
