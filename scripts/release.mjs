@@ -3,8 +3,7 @@
 //        npm run release -- v0.2.0  -> rebuilds an existing tag
 // Only committed, tagged code ever reaches the play server, so work in progress can't break a running game.
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { build } from "vite";
 
@@ -20,13 +19,21 @@ if (!tag) {
   if (!exists) sh(`git tag -a ${tag} -m "Lantern Harbor ${tag}"`);
 }
 
-const src = join(tmpdir(), `lh-release-${tag}-${Date.now()}`);
+// Stage inside the repo (gitignored) so the checkout resolves vite from our node_modules.
+const stage = join(root, ".release-tmp"), src = join(stage, "src"), out = join(stage, "out");
+rmSync(stage, { recursive: true, force: true }); mkdirSync(stage, { recursive: true });
+sh("git worktree prune");
 sh(`git worktree add --detach "${src}" ${tag}`);
 try {
   const cfg = join(src, "vite.config.js");
   await build({ root: src, configFile: existsSync(cfg) ? cfg : false, logLevel: "warn",
-    build: { outDir: join(root, "live"), emptyOutDir: true } });
+    build: { outDir: out, emptyOutDir: true } });
+  // Swap the finished build into live/ only after it succeeded, so a failed build never breaks the play server.
+  const live = join(root, "live");
+  rmSync(live, { recursive: true, force: true });
+  cpSync(out, live, { recursive: true });
   console.log(`Released ${tag} -> live/  (refresh the game at http://localhost:5173 to get it)`);
 } finally {
   sh(`git worktree remove --force "${src}"`);
+  rmSync(stage, { recursive: true, force: true });
 }
