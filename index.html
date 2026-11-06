@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lantern Harbor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="test">Test mode: purchases are simulated, no money changes hands</div>
+  <header>
+    <h1>Lantern <span>Harbor</span></h1>
+    <div class="wallet">
+      <div class="chip">☀ <b id="coins">0</b> light</div>
+      <div class="chip g">◆ <b id="gems">0</b> gems</div>
+      <div class="chip l" id="lchip" hidden>✦ <b id="lumens">0</b> lumens</div>
+    </div>
+  </header>
+
+  <div class="scene">
+    <div class="stats">Per tap <b id="ptap">1</b><br>Per second <b id="psec">0</b><br>Ships guided <b id="ships">0</b></div>
+    <div class="badges"><div class="badge boost" id="boost" hidden></div><div class="badge goldb" id="goldb" hidden>Golden ship! Tap it</div></div>
+    <canvas id="cv" width="680" height="300" aria-label="Lighthouse. Tap to shine the beam and earn light." role="button" tabindex="0"></canvas>
+  </div>
+  <p class="hint">Tap to sweep the beam. Guide ships for bonus light, and tap golden ships fast for a big payout.</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="up" aria-selected="true">Upgrades</button>
+    <button class="tab" role="tab" data-tab="goals" aria-selected="false">Goals<i class="dot" id="gdot" hidden></i></button>
+    <button class="tab" role="tab" data-tab="relight" aria-selected="false">Relight<i class="dot" id="rdot" hidden></i></button>
+    <button class="tab" role="tab" data-tab="shop" aria-selected="false">Gem Shop</button>
+    <button class="tab" role="tab" data-tab="rev" aria-selected="false">Revenue</button>
+  </div>
+  <section id="p-up" class="list"></section>
+  <section id="p-goals" class="list" hidden></section>
+  <section id="p-relight" hidden></section>
+  <section id="p-shop" class="list" hidden></section>
+  <section id="p-rev" hidden></section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h2 id="m-title"></h2>
+    <p id="m-body"></p>
+    <div class="price" id="m-price" hidden></div>
+    <p id="m-note" hidden>This is a simulated checkout. In a live build this is where the App Store, Google Play, or Stripe sheet would open.</p>
+    <div class="actions"><button class="ghost" id="m-no">Cancel</button><button class="buy cash" id="m-yes">OK</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
