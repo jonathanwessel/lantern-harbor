@@ -9,13 +9,15 @@ import { toast, openModal, closeModal, copyText } from "./dialogs.js";
 import { sfx } from "../audio.js";
 import { settings, setSetting, onSettings } from "../settings.js";
 import { renderKeepers, keeperClick, keeperChange } from "./keepersPanel.js";
+import { setInsets } from "../scene.js";
 import { HARBORS, NETWORK_BONUS } from "../config.js";
 import { isUnlocked, unlockedCount, nextHarbor, harborRun, travelTo, newHarbors } from "../harbors.js";
 import { networkMult } from "../economy.js";
 import { season, seasonEnds, seasonState, seasonClaimable, claimSeason } from "../seasons.js";
 
 /** Currently selected tab id. */
-export let tab = "up";
+/** Open panel id, or null when the sheet is closed. */
+export let tab = null;
 
 const fmtTime = ms => { const s = Math.ceil(ms/1000), h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
   return (h ? h+":"+String(m).padStart(2,"0") : m) + ":" + String(x).padStart(2,"0"); };
@@ -177,10 +179,60 @@ export function renderShop() {
     <div class="section-h">Spend gems</div>${spend}<div class="section-h">Beam colors</div>${cols}<div class="section-h">Earn gems</div>${earn}`;
 }
 
-const RENDER = {up:renderUp, research:renderResearch, keepers:renderKeepers, goals:renderGoals, relight:renderRelight, shop:renderShop};
+const RENDER = {up:renderUp, research:renderResearch, keepers:renderKeepers, goals:renderGoals, relight:renderRelight, shop:renderShop, menu:()=>{}};
+const TITLES = {up:"Upgrades", research:"Research", keepers:"Keepers", goals:"Goals", relight:"Relight", shop:"Gem Shop", menu:"Menu"};
 
-/** Re-render the currently visible panel. */
-export function renderAll() { RENDER[tab](); }
+/** Re-render the open panel (nothing when the sheet is closed). */
+export function renderAll() { if (tab && RENDER[tab]) RENDER[tab](); }
+
+/* ---------- Sheet: panels open over the harbor ----------
+ * Phones and tablets: a bottom sheet above the dock. Wide screens: a drawer on the right.
+ * The scene camera keeps the lighthouse centered in whatever space is left. */
+const drawerMode = () => matchMedia("(min-width: 1100px), (orientation: landscape) and (max-height: 560px)").matches;
+
+export function updateInsets() {
+  const hud = $("hud").offsetHeight + 8, dock = $("dock"), sheet = $("sheet"), side = drawerMode();
+  const dockW = side ? dock.offsetWidth + 24 : 0, dockH = side ? 0 : dock.offsetHeight + 8;
+  if (!tab) setInsets({ top: hud, left: dockW, right: 0, bottom: dockH });
+  else if (side) setInsets({ top: hud, left: dockW, right: sheet.offsetWidth + 24, bottom: 0 });
+  else setInsets({ top: hud, left: 0, right: 0, bottom: dockH + sheet.offsetHeight });
+}
+
+function openPanel(id) {
+  if (tab === id) { closePanel(); return; }
+  tab = id;
+  const sheet = $("sheet");
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === id));
+  Object.keys(RENDER).forEach(k => $("p-"+k).hidden = k !== id);
+  $("sheet-title").textContent = TITLES[id];
+  sheet.hidden = false; sheet.style.transform = "";
+  $("sheet-body").scrollTop = 0;
+  requestAnimationFrame(() => { sheet.classList.add("open"); updateInsets(); });
+  document.body.classList.add("panel-open");
+  renderAll();
+}
+
+export function closePanel() {
+  if (!tab) return;
+  tab = null;
+  const sheet = $("sheet");
+  sheet.classList.remove("open"); sheet.style.transform = "";
+  document.body.classList.remove("panel-open");
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", "false"));
+  setTimeout(() => { if (!tab) sheet.hidden = true; }, 260);
+  updateInsets();
+}
+
+/** Drag the sheet's header down to close it (phones). */
+function initSwipe() {
+  const head = $("sheet-head"), sheet = $("sheet");
+  let y0 = null, dy = 0;
+  head.addEventListener("pointerdown", e => { if (drawerMode() || e.target.closest("button")) return; y0 = e.clientY; dy = 0; head.setPointerCapture(e.pointerId); sheet.classList.add("dragging"); });
+  head.addEventListener("pointermove", e => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); sheet.style.transform = `translateY(${dy}px)`; });
+  const end = () => { if (y0 === null) return; y0 = null; sheet.classList.remove("dragging");
+    if (dy > 80) closePanel(); else sheet.style.transform = ""; };
+  head.addEventListener("pointerup", end); head.addEventListener("pointercancel", end);
+}
 
 /* ---------- Save tools ---------- */
 const summary = s => `☀ ${fmt(s.coins||0)} light · ◆ ${s.gems||0} gems · ✦ ${s.lumens||0} lumens · ${s.ships||0} ships`;
@@ -271,7 +323,7 @@ function onClick(e) {
       const had=unlockedCount();S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};sfx("relight");toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);
       if(unlockedCount()>had){const id=newHarbors()[0];if(id)setTimeout(()=>{toast(`New harbor discovered: ${HARBORS[id].name}! Open the sea chart to sail there.`,5000);sfx("chime")},2600)}
       renderAll();save()}})}
-  if(d.goto){const t=document.querySelector(`.tab[data-tab="${d.goto}"]`);if(t){t.click();t.scrollIntoView({block:"nearest"})}}
+  if(d.goto){if(tab!==d.goto)openPanel(d.goto)}
   if(d.gb){const g=GEMBUYS.find(x=>x.id===d.gb);if(S.gems<g.cost)return;S.gems-=g.cost;sfx("buy");
     if(g.id==="boost"){S.boostUntil=Math.max(Date.now(),S.boostUntil)+600000;toast("Surge active: 2x light")}
     if(g.id==="skip"){const amt=perSec()*7200||perTap()*500;earn(amt);toast("Collected ☀ "+fmt(amt))}
@@ -294,9 +346,13 @@ function onClick(e) {
 }
 
 export function initPanels() {
-  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{tab=t.dataset.tab;
-    document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));
-    Object.keys(RENDER).forEach(k=>$("p-"+k).hidden=k!==tab);renderAll()});
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>openPanel(t.dataset.tab));
+  $("sheet-close").onclick=closePanel;
+  initSwipe();
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&$("modal").hidden)closePanel()});
+  addEventListener("resize",updateInsets);
+  new ResizeObserver(updateInsets).observe($("hud")); // the HUD grows when badges appear
+  updateInsets();
   document.addEventListener("click", onClick);
   document.addEventListener("input", onSetting);
   document.addEventListener("change", onSetting);

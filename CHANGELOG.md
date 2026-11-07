@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.2.0 — Full Screen
+
+**New look and layout**
+- **The harbor fills the whole screen** on phones, tablets and desktops, in portrait or landscape.
+  Tall screens show more sky and sea instead of shrinking the lighthouse; wide screens show more coast.
+- **Floating glass HUD** with your light, gems, lumens, current harbor, live stats, conditions and
+  alerts (surge, tailwind, combo, flares, weather, golden ship).
+- **Dock** with icon buttons for Upgrades, Research, Keepers, Goals, Relight, Shop and Menu.
+  It sits at the bottom on phones and tablets, and on the left edge on wide screens and short
+  landscape phones. Alert dots work as before.
+- **Panels open over the game**: a bottom sheet on phones (swipe down, ✕, or Esc to close) and a
+  side drawer on desktop. The camera glides to keep the lighthouse in view in the space that's
+  left, so you can keep tapping while you shop.
+- **Menu** gathers Settings, Sound, Sea chart, Export/Import, Backups and Install.
+
+**Graphics**
+- The lamp's light reflects on the water, the moon lays a glinting path, and the lantern has a
+  soft bloom at night.
+- Waves fade with distance, the sea sparkles in the sun, shooting stars cross clear night skies,
+  and a gentle vignette frames the scene.
+- Coastlines, sky, weather and seasonal effects extend to fill any screen shape.
+
+**Fixed**
+- The scene now adapts when the window changes size even if the browser doesn't announce it
+  (rotations, mobile toolbars).
+
 ## v1.1.0 — Free to Play
 
 - **Lantern Harbor is free.** Removed every real-money element: the gem packs, the starter pack,

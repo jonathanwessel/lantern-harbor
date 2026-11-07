@@ -33,6 +33,14 @@ reloads on your click, saving first.
 
 `npm run release -- v0.2.0` rebuilds an older tag, which is also how to roll back.
 
+## Layout
+
+The harbor canvas fills the window. `scene.js` has a camera: world coordinates stay fixed (the
+lighthouse is at 340,67 in a 680×300 band) and the camera scales and positions that world to fill
+any screen, keeping the lighthouse centered in the space not covered by the HUD, dock or an open
+panel (`setInsets`, driven by `updateInsets()` in `ui/panels.js`). Panels are a bottom sheet on
+phones and a right-hand drawer at ≥1100px wide or on short landscape screens.
+
 ## Install and offline
 
 Release builds include a web app manifest and a service worker (`sw.js`, generated per release in

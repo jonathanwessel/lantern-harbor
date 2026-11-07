@@ -7,7 +7,7 @@ export const DONE = 99;
 const STEPS = [
   { text: "Tap the lighthouse to make light.", done: () => S.taps >= 5 },
   { text: "Ships need guiding! Tap a ship as it sails past for bonus light.", done: () => S.ships >= 1 },
-  { text: "Spend your light on an upgrade below. A Night Keeper earns light even while you're away.", done: () => Object.values(S.owned).some(n => n > 0) },
+  { text: "Open Upgrades in the dock and buy one. A Night Keeper earns light even while you're away.", done: () => Object.values(S.owned).some(n => n > 0) },
   { text: "That's the basics, keeper. Research, contracts, keepers and new harbors open up as you play.", done: () => false, timeout: 9000 },
 ];
 
