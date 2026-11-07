@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.0 — Fleet & Contracts
+
+**New**
+- **Seven ship classes**, each worth a different amount when guided:
+  fishing boats (×0.6, common), sloops (×1), schooners (×1.3), steamers (×1.4),
+  freighters (×3, slow and stacked with containers), clippers (×1.8, fast, gone quickly),
+  and rare **ghost ships** that only sail at night (×8 and +1 gem, and they fade at daybreak).
+- **Tap a ship to pick it.** Tapping a specific ship guides that one, so you can go for freighters
+  and ghosts. Tapping anywhere else still guides the first ship in view.
+- **Guiding combo.** Guide ships back to back (within 8 seconds) for +10% per ship, up to ×3.
+- **Harbor Contracts** in the Goals tab: three rotating goals (guide ships at night, catch birds,
+  reach a combo, guide freighters...) that pay gems plus light. Swap one you don't like for 2 gems.
+- **Keeper's Logbook** in the Goals tab: lifetime stats, time played, best combo, and ships by class.
+- **Shipping Lanes** research: one more ship in the harbor at a time per level (up to 7).
+- 4 new achievements: Ghost Light, Heavy Cargo, Chain of Lights, Harbor Contractor.
+
 ## v0.3.0 — The Living Harbor
 
 **New**

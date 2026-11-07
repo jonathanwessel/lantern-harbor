@@ -62,6 +62,7 @@ export const RESEARCH = [
   {id:"dues",name:"Harbor Dues",desc:"+50% light from every guided ship per level",max:10,base:3000,grow:4,time:30},
   {id:"birds",name:"Ornithology",desc:"Birds visit 30% more often and pay +50% per level",max:5,base:5000,grow:5,time:40},
   {id:"lure",name:"Bird Lure",desc:"Birds land at the lantern on their own after a few seconds, for 60% of the reward (+10% per level). Levels make them come sooner.",max:5,base:6000,grow:5,time:45},
+  {id:"lanes",name:"Shipping Lanes",desc:"One more ship in the harbor at a time per level",max:4,base:15000,grow:6,time:60},
   {id:"lookout",name:"Lookout Post",desc:"Golden ships appear 20% more often per level",max:5,base:8000,grow:5,time:45},
   {id:"signals",name:"Fog Signals",desc:"Fog and storm ship bonuses +0.5x per level",max:5,base:20000,grow:6,time:60},
   {id:"charts",name:"Gilded Charts",desc:"Golden ships pay +50% per level",max:5,base:50000,grow:6,time:60},
@@ -81,4 +82,36 @@ ACH.push(
   {id:"albatross",name:"Wandering Wings",desc:"Catch an albatross",gems:15,cur:S=>S.albatross,goal:1},
   {id:"storm25",name:"Any Port in a Storm",desc:"Guide 25 ships through fog or storm",gems:15,cur:S=>S.weatherShips,goal:25},
   {id:"res10",name:"Natural Philosopher",desc:"Complete 10 research levels",gems:20,cur:S=>Object.values(S.research).reduce((a,b)=>a+b,0),goal:10},
+);
+
+/* Ship classes. `w` = spawn weight, `v` = speed range, `value` = multiplier on the guide bonus.
+ * Ghost ships never spawn by weight: they appear only at night (see scene.js). */
+export const SHIPS = {
+  fishing:{name:"Fishing boat",w:30,v:[.5,.8],value:.6},
+  sloop:{name:"Sloop",w:24,v:[.4,.9],value:1},
+  schooner:{name:"Schooner",w:15,v:[.4,.7],value:1.3},
+  steamer:{name:"Steamer",w:14,v:[.45,.7],value:1.4},
+  freighter:{name:"Freighter",w:8,v:[.25,.35],value:3},
+  clipper:{name:"Clipper",w:9,v:[1.4,1.8],value:1.8},
+  ghost:{name:"Ghost ship",w:0,v:[.3,.4],value:8},
+};
+
+/* Harbor Contracts: short rotating goals. `goal` is a [min,max] range; `round` snaps the target. */
+export const CONTRACTS = [
+  {kind:"ship",text:n=>`Guide ${n} ships`,goal:[15,40],gems:5},
+  {kind:"night",text:n=>`Guide ${n} ships at night`,goal:[8,20],gems:6},
+  {kind:"weather",text:n=>`Guide ${n} ships through fog or storm`,goal:[4,10],gems:8},
+  {kind:"bird",text:n=>`Catch ${n} birds`,goal:[3,8],gems:6},
+  {kind:"gold",text:n=>`Catch ${n} golden ship${n>1?"s":""}`,goal:[1,2],gems:8},
+  {kind:"tap",text:n=>`Tap the lamp ${n} times`,goal:[150,400],round:50,gems:4},
+  {kind:"combo",text:n=>`Reach a ${n}-ship guiding combo`,goal:[4,9],gems:7,max:true},
+  {kind:"freighter",text:n=>`Guide ${n} freighter${n>1?"s":""}`,goal:[2,4],gems:6},
+  {kind:"clipper",text:n=>`Guide ${n} clipper${n>1?"s":""} before they slip away`,goal:[2,5],gems:6},
+];
+
+ACH.push(
+  {id:"ghost",name:"Ghost Light",desc:"Guide a ghost ship home",gems:15,cur:S=>S.shipsBy.ghost||0,goal:1},
+  {id:"freight25",name:"Heavy Cargo",desc:"Guide 25 freighters",gems:10,cur:S=>S.shipsBy.freighter||0,goal:25},
+  {id:"combo10",name:"Chain of Lights",desc:"Reach a 10-ship guiding combo",gems:10,cur:S=>S.bestCombo,goal:10},
+  {id:"contracts10",name:"Harbor Contractor",desc:"Complete 10 contracts",gems:15,cur:S=>S.contractsDone,goal:10},
 );

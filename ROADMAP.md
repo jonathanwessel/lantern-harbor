@@ -7,16 +7,10 @@ must load every older save without losing anything.
 - **v0.2.0** Module split, Vite.
 - **v0.3.0** The Living Harbor: research, auto-guide, bird lure, day/night, weather, birds, a harbor
   that grows with your upgrades, save export/import and backups.
+- **v0.4.0** Fleet & Contracts: seven ship classes incl. ghost ships, tap-to-target, guiding combo,
+  Harbor Contracts, Keeper's Logbook, Shipping Lanes research.
 
 ## Next
-
-### v0.4 — Fleet & Contracts
-- Ship classes with their own value: fishing boats (common, small), freighters (slow, big payout),
-  clippers (fast, gone quickly), and a rare ghost ship at night.
-- Harbor Contracts: rotating short goals ("guide 15 ships in fog", "catch 3 gulls by day") that
-  pay gems or research speed.
-- Ship combo: guide ships back to back for a growing multiplier.
-- Stats panel: lifetime numbers, best combo, time played.
 
 ### v0.5 — Sound & Feel
 - Ambient waves, gulls, fog bell, foghorn in fog, thunder; tap and catch sounds. Mute and volume settings.

@@ -24,11 +24,16 @@ export const perSec = (b=true) => baseSec()*mult(b)*(1+.25*lvl("clock"));
 export const earn = n => { S.coins += n; S.lifetime += n; S.run += n; };
 
 /** Light for guiding a ship. Night doubles it; fog and storms multiply it further.
- *  Harbor Dues adds +50% per level. Auto-guided ships (Clockwork Beam) pay 50% (+10% per level) but also scale with per-second income. */
-export function shipBonus(auto=false) {
-  const base = auto ? Math.max(5, perTap()*3, perSec()*3)*(.5+.1*lvl("auto")) : Math.max(5, perTap()*3);
-  return base*(1+.5*lvl("dues"))*(isNight()?2:1)*weatherShipMult();
+ *  `value` is the ship class multiplier, `combo` the manual guiding combo multiplier. Harbor Dues adds +50% per level. Auto-guided ships (Clockwork Beam) pay 50% (+10% per level) but also scale with per-second income. */
+export function shipBonus(auto=false, value=1, combo=1) {
+  const base = auto ? Math.max(5, perTap()*3, perSec()*3)*(.5+.1*lvl("auto")) : Math.max(5, perTap()*3)*combo;
+  return base*value*(1+.5*lvl("dues"))*(isNight()?2:1)*weatherShipMult();
 }
+/** Guiding combo: each manual guide within COMBO_WINDOW seconds of the last adds +10%, up to x3. */
+export const COMBO_WINDOW = 8;
+export const comboMult = n => 1 + .1*Math.min(Math.max(0,n-1), 20);
+/** Ships in the harbor at once (3, plus Shipping Lanes research). */
+export const maxShips = () => 3 + lvl("lanes");
 export const goldReward = () => Math.max(perSec()*60, perTap()*50)*(1+.5*lvl("charts"));
 export const birdMult = () => 1+.5*lvl("birds");
 export const gullReward = () => Math.max(perSec()*45, perTap()*25, 20)*birdMult();

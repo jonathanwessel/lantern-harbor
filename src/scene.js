@@ -8,10 +8,11 @@
  * boat, radio mast, satellite dish, coast guard station and lens workshop appear as they are bought,
  * and an observatory is built once research starts.
  */
-import { COLORS, BIRDS } from "./config.js";
+import { COLORS, BIRDS, SHIPS } from "./config.js";
+import { track } from "./contracts.js";
 import { S, lvl } from "./state.js";
-import { perTap, earn, shipBonus, goldReward, gullReward, autoCooldown, lureDelay, lureMult } from "./economy.js";
-import { daylight, dayPhase, foggy, stormy, badWeather } from "./world.js";
+import { perTap, earn, shipBonus, goldReward, gullReward, autoCooldown, lureDelay, lureMult, COMBO_WINDOW, comboMult, maxShips } from "./economy.js";
+import { daylight, dayPhase, foggy, stormy, badWeather, isNight } from "./world.js";
 import { fmt, $ } from "./util.js";
 
 export const W = 680, H = 300;
@@ -32,8 +33,15 @@ const STARS = Array.from({length:70}, (_,i) => ({x:(i*97+i*i*13)%W, y:(i*53+i*7)
 const TOWN = [[22,150],[34,147],[48,152],[66,146],[80,151],[104,156],[118,160],[150,166],[170,170],[196,177]];
 
 /* ---------- Spawning ---------- */
-const SHIP_TYPES = ["sloop","sloop","schooner","steamer"];
-function spawnShip(){ships.push({x:-40,y:205+Math.random()*50,v:.4+Math.random()*.5,lit:false,type:SHIP_TYPES[Math.random()*SHIP_TYPES.length|0],p:Math.random()*6})}
+const CLASS_IDS = Object.keys(SHIPS).filter(k=>SHIPS[k].w>0);
+const TOTAL_W = CLASS_IDS.reduce((a,k)=>a+SHIPS[k].w,0);
+/** Weighted pick of a ship class. Ghost ships only sail at night. */
+function pickClass(){
+  if(isNight()&&Math.random()<.03)return "ghost";
+  let r=Math.random()*TOTAL_W;for(const k of CLASS_IDS){r-=SHIPS[k].w;if(r<=0)return k}return "sloop";
+}
+function spawnShip(x){const type=pickClass(),[a,b]=SHIPS[type].v;
+  ships.push({x:x??-40-Math.random()*140,y:205+Math.random()*50,v:a+Math.random()*(b-a),lit:false,type,p:Math.random()*6,fade:1})}
 
 export const hasGold = () => !!gold;
 export function spawnGold(){gold={x:-40,y:215+Math.random()*30,v:1.6}}
@@ -44,21 +52,36 @@ export function spawnBird(kind){
   birds.push({kind, dir, x:dir>0?-30:W+30, y:30+Math.random()*110, v:b.v*(.85+Math.random()*.3), p:Math.random()*6, age:0});
 }
 
+/* ---------- Guiding combo ---------- */
+let combo = 0, comboT = 0;
+/** Current combo, for the HUD badge. */
+export const comboState = () => ({ n: combo, left: comboT, mult: comboMult(combo) });
+
 /* ---------- Interaction ---------- */
 const birdHit = (b,px,py) => Math.hypot(px-b.x, py-b.y) < 24*BIRDS[b.kind].size+8;
+const shipScale = s => .8+(s.y-205)/50*.4;
+const shipHit = (s,px,py) => { const k=shipScale(s); return Math.abs(px-s.x)<30*k && py>s.y-30*k && py<s.y+14*k; };
+const onScreen = s => !s.lit && s.x>0 && s.x<W;
 
 function burst(x, y, color, n=10){ for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=1+Math.random()*2;sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,a:1,c:color})} }
 
 function guide(s, auto){
   s.lit = true;
-  const bonus = shipBonus(auto); earn(bonus); S.ships++;
-  if (badWeather()) S.weatherShips++;
-  floats.push({x:s.x,y:s.y-24,a:1,t:(auto?"⚙ +":"⚓ +")+fmt(bonus)});
-  burst(s.x, s.y-8, COLORS.find(c=>c.id===S.color).hex, auto?6:10);
+  const cls = SHIPS[s.type];
+  if (!auto) { combo = comboT > 0 ? combo+1 : 1; comboT = COMBO_WINDOW; S.bestCombo = Math.max(S.bestCombo, combo); track("combo", combo); }
+  const bonus = shipBonus(auto, cls.value, auto ? 1 : comboMult(combo)); earn(bonus); S.ships++;
+  S.shipsBy[s.type] = (S.shipsBy[s.type]||0) + 1;
+  track("ship"); track(s.type); if (isNight()) track("night");
+  if (badWeather()) { S.weatherShips++; track("weather"); }
+  if (s.type === "ghost") S.gems += 1;
+  const label = ["freighter","clipper","ghost"].includes(s.type) ? cls.name+" " : "";
+  floats.push({x:s.x,y:s.y-24,a:1.1,t:label+(auto?"⚙ +":"⚓ +")+fmt(bonus)+(s.type==="ghost"?" +◆1":""),c:s.type==="ghost"?"#bfe9e3":undefined});
+  if (!auto && combo >= 2) floats.push({x:s.x,y:s.y-42,a:1,t:`Combo ×${comboMult(combo).toFixed(1)}`,c:"#5fd3c4"});
+  burst(s.x, s.y-8, s.type==="ghost"?"#bfe9e3":COLORS.find(c=>c.id===S.color).hex, auto?6:10);
 }
 
 function catchBird(b, auto=false){
-  birds.splice(birds.indexOf(b),1); S.birds++;
+  birds.splice(birds.indexOf(b),1); S.birds++; track("bird");
   const info = BIRDS[b.kind], r = gullReward()*(b.kind==="albatross"?2:1)*(auto?lureMult():1); earn(r);
   if (b.kind==="albatross") { S.albatross++; S.frenzyUntil = Math.max(Date.now(),S.frenzyUntil)+15000;
     floats.push({x:b.x,y:b.y-26,a:1.5,t:"Tailwind! taps ×5",c:"#fff6c7"}); }
@@ -69,19 +92,20 @@ function catchBird(b, auto=false){
 
 function tap(px,py){
   if(gold&&px!=null&&Math.hypot(px-gold.x,py-(gold.y-6))<40){
-    const r=goldReward();earn(r);S.gems+=1;S.golden++;
+    const r=goldReward();earn(r);S.gems+=1;S.golden++;track("gold");
     floats.push({x:gold.x,y:gold.y-24,a:1.3,t:"★ +"+fmt(r)+" +◆1",c:"#ffd84a"});burst(gold.x,gold.y-6,"#ffd84a",18);gold=null;flash=1;return}
   if(px!=null){const b=birds.find(b=>birdHit(b,px,py));if(b){catchBird(b);return}}
-  const g=perTap();earn(g);S.taps++;flash=1;
+  const g=perTap();earn(g);S.taps++;track("tap");flash=1;
   floats.push({x:330+Math.random()*40-20,y:52,a:1,t:"+"+fmt(g)});
-  const s=ships.find(s=>!s.lit&&s.x>0&&s.x<W);
+  // Tap a ship to guide that one; otherwise the beam picks the first unguided ship in view.
+  const s=(px!=null&&ships.find(s=>onScreen(s)&&shipHit(s,px,py)))||ships.find(onScreen);
   if(s){guide(s,false);beamP=Math.acos(Math.max(-1,Math.min(1,(s.x-LX)/REACH)))}else spin+=3;
 }
 
 export function initScene(){
   cv=$("cv");ctx=cv.getContext("2d");
   const dpr=Math.min(2,devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-  for(let i=0;i<3;i++){spawnShip();ships[i].x=Math.random()*600}
+  for(let i=0;i<maxShips();i++)spawnShip(Math.random()*600);
   for(let i=0;i<6;i++)clouds.push({x:Math.random()*W,y:18+Math.random()*100,s:.6+Math.random()*.8,v:.04+Math.random()*.1});
   for(let i=0;i<90;i++)drops.push({x:Math.random()*W,y:Math.random()*H,v:6+Math.random()*4});
   cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();tap((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});
@@ -96,23 +120,50 @@ function hull(x,y,c){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x-18,y);ctx.line
   ctx.fillRect(x-1,y-18,2,18);ctx.beginPath();ctx.moveTo(x+1,y-17);ctx.lineTo(x+12,y-4);ctx.lineTo(x+1,y-4);ctx.fill()}
 
 function sail(x0,top,bot,w,c){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x0+1,top);ctx.quadraticCurveTo(x0+w*.9,(top+bot)/2,x0+w,bot);ctx.lineTo(x0+1,bot);ctx.fill()}
+/** A torn, fluttering sail for the ghost ship. */
+function rag(x0,top,bot,w,c,t){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x0+1,top);ctx.lineTo(x0+w,top+3);
+  for(let i=0;i<=4;i++){const y=top+3+(bot-top-3)*i/4;ctx.lineTo(x0+w-(i%2?4:0)+Math.sin(t/300+i)*1.5,y)}ctx.lineTo(x0+1,bot);ctx.fill()}
+
+const HULL_LEN = {fishing:13,sloop:18,schooner:24,steamer:24,freighter:38,clipper:26,ghost:24};
+const BOXES = ["#b33b33","#3b6fb3","#c89b4a","#4a9b6b","#8a5ab3"];
 
 function drawShip(s,d,col,t){
-  const k=.8+(s.y-205)/50*.4, y=s.y+Math.sin(t/500+s.p)*1.2;
+  const k=shipScale(s), y=s.y+Math.sin(t/500+s.p)*1.2, ghost=s.type==="ghost", L=HULL_LEN[s.type];
   ctx.save();ctx.translate(s.x,y);ctx.scale(k,k);
-  // wake
-  ctx.strokeStyle=rgba("#e9f0f7",.18+.1*d);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-20,7);ctx.lineTo(-44,9);ctx.moveTo(-18,9);ctx.lineTo(-36,12);ctx.stroke();
-  const hullC=s.lit?mix("#2a3f55","#5a3b2e",d):mix("#1f3247","#4f3a30",d), sailC=s.lit?col:mix("#41607e","#e6dfcc",d);
-  ctx.fillStyle=hullC;const L=s.type==="sloop"?18:24;
-  ctx.beginPath();ctx.moveTo(-L,0);ctx.lineTo(L+2,0);ctx.lineTo(L-5,8);ctx.lineTo(-L+5,8);ctx.fill();
-  ctx.fillStyle=mix("#13202e","#2b1d17",d);ctx.fillRect(-L+4,5,2*L-8,1.5);
-  if(s.type==="sloop"){ctx.fillStyle=hullC;ctx.fillRect(-1,-20,2,20);sail(0,-19,-3,13,sailC);sail(-1,-16,-3,-9,sailC)}
-  if(s.type==="schooner"){ctx.fillStyle=hullC;ctx.fillRect(-9,-22,2,22);ctx.fillRect(7,-18,2,18);sail(-8,-21,-3,12,sailC);sail(8,-17,-3,11,sailC)}
-  if(s.type==="steamer"){ctx.fillStyle=s.lit?col:mix("#33506c","#d9d2c0",d);ctx.fillRect(-12,-8,20,8);ctx.fillStyle=mix("#2a3a4c","#7b3b30",d);ctx.fillRect(2,-17,5,10);
-    ctx.fillStyle=rgba("#9aa8b5",.35);for(let i=0;i<3;i++){const q=(t/900+i/3+s.p)%1;ell(4-q*18,-20-q*14,3+q*5,2+q*3)}}
-  if(s.lit){ctx.fillStyle=rgba(col,.25);ell(0,-6,26,16);ctx.fillStyle="#fff6c7";ctx.fillRect(-1,-22,2,2)}
-  else if(d<.5){ctx.fillStyle="#ff6b5a";ctx.fillRect(-L+2,-2,2,2);ctx.fillStyle="#6fdc8c";ctx.fillRect(L-3,-2,2,2)}
-  ctx.restore();
+  const base=s.fade*(ghost?.55+.15*Math.sin(t/400+s.p):1);ctx.globalAlpha=base;
+  // wake (clippers leave a long one)
+  const wl=s.type==="clipper"?40:24;
+  ctx.strokeStyle=rgba("#e9f0f7",ghost?.08:.18+.1*d);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-L,7);ctx.lineTo(-L-wl,9);ctx.moveTo(-L+2,9);ctx.lineTo(-L-wl*.7,12);ctx.stroke();
+  if(ghost){ctx.fillStyle=rgba("#7fffd4",.16);ell(0,-8,38,22)}
+  const hullC=ghost?"#9fd8cf":s.lit?mix("#2a3f55","#5a3b2e",d):mix("#1f3247","#4f3a30",d);
+  const sailC=ghost?"#d8f5ef":s.lit?col:mix("#41607e","#e6dfcc",d);
+  ctx.fillStyle=hullC;
+  ctx.beginPath();ctx.moveTo(-L,0);ctx.lineTo(L+(s.type==="clipper"?8:2),0);ctx.lineTo(L-5,8);ctx.lineTo(-L+5,8);ctx.fill();
+  ctx.fillStyle=ghost?"#6fb5aa":mix("#13202e","#2b1d17",d);ctx.fillRect(-L+4,5,2*L-8,1.5);
+  switch(s.type){
+    case "fishing":
+      ctx.fillStyle=s.lit?col:mix("#33506c","#c9b48a",d);ctx.fillRect(-8,-7,9,7);ctx.fillStyle=hullC;ctx.fillRect(5,-16,1.5,16);
+      ctx.strokeStyle=hullC;ctx.beginPath();ctx.moveTo(6,-15);ctx.lineTo(15,2);ctx.stroke();break;
+    case "sloop":
+      ctx.fillStyle=hullC;ctx.fillRect(-1,-20,2,20);sail(0,-19,-3,13,sailC);sail(-1,-16,-3,-9,sailC);break;
+    case "schooner":
+      ctx.fillStyle=hullC;ctx.fillRect(-9,-22,2,22);ctx.fillRect(7,-18,2,18);sail(-8,-21,-3,12,sailC);sail(8,-17,-3,11,sailC);break;
+    case "steamer":
+      ctx.fillStyle=s.lit?col:mix("#33506c","#d9d2c0",d);ctx.fillRect(-12,-8,20,8);ctx.fillStyle=mix("#2a3a4c","#7b3b30",d);ctx.fillRect(2,-17,5,10);
+      ctx.fillStyle=rgba("#9aa8b5",.35);for(let i=0;i<3;i++){const q=(t/900+i/3+s.p)%1;ell(4-q*18,-20-q*14,3+q*5,2+q*3)}break;
+    case "freighter":
+      for(let i=0;i<6;i++){ctx.fillStyle=s.lit?col:mix("#22384d",BOXES[(i+(s.p*10|0))%5],d);ctx.fillRect(-30+i*8,-7-(i%2)*4,7,7+(i%2)*4)}
+      ctx.fillStyle=mix("#33506c","#e9f0f7",d);ctx.fillRect(22,-14,10,14);ctx.fillStyle=rgba("#ffcf7a",.4+.5*(1-d));ctx.fillRect(24,-12,6,2);break;
+    case "clipper":
+      ctx.fillStyle=hullC;[-12,0,12].forEach((x,i)=>{ctx.fillRect(x-1,-28+i*2,2,28-i*2);sail(x,-27+i*2,-3,10,sailC)});
+      ctx.strokeStyle=hullC;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L+8,0);ctx.lineTo(12,-26);ctx.stroke();break;
+    case "ghost":
+      ctx.fillStyle=hullC;ctx.fillRect(-9,-24,2,24);ctx.fillRect(7,-20,2,20);rag(-8,-23,-3,12,sailC,t);rag(8,-19,-3,11,sailC,t);
+      ctx.fillStyle="#7fffd4";ctx.globalAlpha=base*(.6+.4*Math.sin(t/180));ctx.fillRect(-1,-27,2,2);ctx.globalAlpha=base;break;
+  }
+  if(s.lit&&!ghost){ctx.fillStyle=rgba(col,.25);ell(0,-6,L+8,16);ctx.fillStyle="#fff6c7";ctx.fillRect(-1,-22,2,2)}
+  else if(!s.lit&&!ghost&&d<.5){ctx.fillStyle="#ff6b5a";ctx.fillRect(-L+2,-2,2,2);ctx.fillStyle="#6fdc8c";ctx.fillRect(L-3,-2,2,2)}
+  ctx.restore();ctx.globalAlpha=1;
 }
 
 function drawBird(b,t){
@@ -265,12 +316,14 @@ export function draw(dt=1/60){
   if(behind)drawBeam(d,col,false);
   drawIsland(d,t,col);
   drawTower(d,col,t);
-  ships.forEach(s=>{s.x+=s.v*k;drawShip(s,d,col,t)});
-  ships=ships.filter(s=>s.x<W+40);while(ships.length<3)spawnShip();
+  // ghost ships fade away at daybreak
+  ships.forEach(s=>{s.x+=s.v*k;if(s.type==="ghost"&&d>.3&&!s.lit)s.fade-=.01*k;drawShip(s,d,col,t)});
+  ships=ships.filter(s=>s.x<W+60&&s.fade>0);while(ships.length<maxShips())spawnShip();
+  if(comboT>0){comboT-=dt;if(comboT<=0)combo=0}
   const beam=drawBeam(d,col,!behind);
   // Clockwork Beam: the sweep guides ships it passes over
   if(lvl("auto")>0){autoCd-=dt;
-    if(autoCd<=0&&beam.ah>.15){const s=ships.find(s=>!s.lit&&s.x>0&&s.x<W&&Math.abs(s.x-beam.tipX)<26);if(s){guide(s,true);autoCd=autoCooldown()}}}
+    if(autoCd<=0&&beam.ah>.15){const s=ships.find(s=>onScreen(s)&&Math.abs(s.x-beam.tipX)<26);if(s){guide(s,true);autoCd=autoCooldown()}}}
   if(gold){gold.x+=gold.v*k;const bob=Math.sin(t/200)*2;
     ctx.save();ctx.shadowColor="#ffd84a";ctx.shadowBlur=18;hull(gold.x,gold.y+bob,"#ffd84a");ctx.restore();
     ctx.fillStyle="#fff6c7";for(let i=0;i<3;i++){const a=t/300+i*2.1;ctx.fillRect(gold.x+Math.cos(a)*24,gold.y-8+Math.sin(a)*14,2,2)}

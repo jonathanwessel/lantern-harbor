@@ -6,7 +6,8 @@ import { tickWeather, weather, isDay, isNight, timeName, stormy } from "./world.
 import { fmt, $ } from "./util.js";
 import { openModal, initDialogs, toast } from "./ui/dialogs.js";
 import { tab, renderAll, renderRelight, renderGoals, refreshUp, refreshResearch, researchReady, checkLab, initPanels } from "./ui/panels.js";
-import { draw, hasGold, spawnGold, spawnBird, birdCount, initScene } from "./scene.js";
+import { draw, hasGold, spawnGold, spawnBird, birdCount, comboState, initScene } from "./scene.js";
+import { ensureContracts, contractsReady } from "./contracts.js";
 
 const VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
 
@@ -32,11 +33,11 @@ function everySecond(){
   if(tickWeather())toast(weather.kind==="fog"?"Fog rolls in. Guided ships pay extra.":weather.kind==="storm"?"A storm! Taps and ships pay extra.":"The weather clears.");
   checkLab();
   if(tab==="relight"){const p=pendingLumens();if(p!==lastP){lastP=p;renderRelight()}else if($("r-run"))$("r-run").textContent=fmt(S.run)}
-  if(tab==="goals"){const sig=[dailyReady(),S.ach.length,...ACH.map(a=>Math.floor(Math.min(a.cur(S),a.goal)/a.goal*20))].join();if(sig!==lastG){lastG=sig;renderGoals()}}
+  if(tab==="goals"){const sig=[dailyReady(),S.ach.length,...ACH.map(a=>Math.floor(Math.min(a.cur(S),a.goal)/a.goal*20)),...S.contracts.map(c=>c.kind+c.n),S.gems>=2,Math.floor(S.playTime/60)].join();if(sig!==lastG){lastG=sig;renderGoals()}}
 }
 
 function loop(t){
-  const dt=Math.min((t-last)/1000,1);last=t;earn(perSec()*dt);
+  const dt=Math.min((t-last)/1000,1);last=t;earn(perSec()*dt);S.playTime+=dt;
   draw(dt);
   acc+=dt;sec+=dt;
   if(acc>.25){acc=0;
@@ -46,8 +47,9 @@ function loop(t){
     const b=$("boost");if(boosted()){b.hidden=false;b.textContent=`2x · ${clock(S.boostUntil-Date.now())}`}else b.hidden=true;
     const f=$("frenzy");if(frenzy()){f.hidden=false;f.textContent=`Tailwind ×5 taps · ${clock(S.frenzyUntil-Date.now())}`}else f.hidden=true;
     const w=$("wx");if(weather.kind!=="clear"){w.hidden=false;w.textContent=`${weather.kind==="fog"?"Fog":"Storm"} · ${clock(weather.until-Date.now())}`;w.className="badge "+weather.kind}else w.hidden=true;
+    const c=comboState(),cb=$("combo");if(c.n>=2){cb.hidden=false;cb.textContent=`Combo ${c.n} · ×${c.mult.toFixed(1)}`}else cb.hidden=true;
     $("goldb").hidden=!hasGold();
-    $("gdot").hidden=!(dailyReady()||unclaimed().length);$("rdot").hidden=pendingLumens()<1;$("resdot").hidden=!researchReady();
+    $("gdot").hidden=!(dailyReady()||unclaimed().length||contractsReady());$("rdot").hidden=pendingLumens()<1;$("resdot").hidden=!researchReady();
     if(tab==="up")refreshUp();
     if(tab==="research")refreshResearch();
   }
@@ -73,6 +75,7 @@ function watchForUpdates(){
 }
 
 load();
+ensureContracts();
 initDialogs();
 initPanels();
 initScene();

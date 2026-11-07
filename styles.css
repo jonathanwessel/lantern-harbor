@@ -104,3 +104,13 @@ canvas{display:block;width:100%;max-width:100%;height:auto;cursor:pointer;touch-
 .bk small{font:400 11px var(--mono);color:var(--mute)}
 .update{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sea-2);border:1px solid var(--glass);border-radius:10px;padding:10px 14px;font-size:14px}
 .update small{color:var(--mute)} .update .buy{min-width:0}
+
+/* ---------- v0.4 ---------- */
+.badge.combo{background:var(--glass)}
+.row.contract.ready{border-color:var(--gem)}
+.logbook{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.logbook div{background:var(--sea-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.logbook span{display:block;font:400 11px var(--mono);color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.logbook b{font:600 15px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.fleet{margin:6px 0 0;color:var(--mute);font:400 12px var(--mono);line-height:1.6}
+@media (max-width:460px){.logbook{grid-template-columns:repeat(2,1fr)}}

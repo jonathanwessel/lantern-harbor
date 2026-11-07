@@ -1,5 +1,6 @@
 /* Tab panels (Upgrades, Research, Goals, Relight, Gem Shop, Revenue), the save bar, and their button actions. */
-import { UPGRADES, COLORS, PACKS, GEMBUYS, DAILY, ACH, RESEARCH } from "../config.js";
+import { UPGRADES, COLORS, PACKS, GEMBUYS, DAILY, ACH, RESEARCH, SHIPS } from "../config.js";
+import { ensureContracts, template, isDone, replaceContract, SWAP_COST } from "../contracts.js";
 import { S, save, lvl, exportCode, parseCode, replaceState, backups, hydrate, validate } from "../state.js";
 import { tier, perTap, perSec, earn, costN, qtyFor, pendingLumens, perLumen, today, yesterday, dailyReady,
   researchCost, researchMs, labLeft, rushCost } from "../economy.js";
@@ -77,6 +78,33 @@ export function checkLab() {
 }
 
 /* ---------- Goals ---------- */
+const contractLight = () => Math.max(perSec()*120, perTap()*60, 50);
+
+function contractsHtml() {
+  ensureContracts();
+  const cl = contractLight();
+  return `<div class="section-h"><span>Harbor contracts</span><span class="own">A new one arrives as soon as you finish one</span></div>` +
+    S.contracts.map((c,i)=>{const t=template(c),done=isDone(c),n=Math.min(c.n,c.goal);
+      return `<div class="row contract ${done?"ready":""}"><div><h3>${t.text(c.goal)}</h3><p><span class="own">${fmt(n)} / ${fmt(c.goal)}</span> · reward ◆ ${c.gems} + ☀ ${fmt(cl)}</p>
+        <div class="bar"><i style="width:${n/c.goal*100}%"></i></div></div>
+        ${done?`<button class="buy gem" data-claim="${i}">Claim</button>`:`<button class="ghost sm" data-swap="${i}" ${S.gems<SWAP_COST?"disabled":""}>Swap ◆ ${SWAP_COST}</button>`}</div>`}).join("");
+}
+
+const hms = sec => { sec = Math.floor(sec); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60); return h ? `${h}h ${m}m` : `${m}m`; };
+
+function logbookHtml() {
+  const lv = Object.values(S.research).reduce((a,b)=>a+b,0);
+  const cells = [
+    ["Light, all time", fmt(S.lifetime)], ["Time played", hms(S.playTime)], ["Lamp taps", fmt(S.taps)],
+    ["Ships guided", fmt(S.ships)], ["Best combo", S.bestCombo], ["Golden ships", S.golden],
+    ["Birds caught", S.birds], ["Contracts done", S.contractsDone], ["Research levels", lv],
+    ["Relights", S.relights], ["Lumens", S.lumens], ["Achievements", `${S.ach.length} / ${ACH.length}`],
+  ];
+  const fleet = Object.entries(SHIPS).filter(([k])=>S.shipsBy[k]).map(([k,c])=>`${c.name} ${fmt(S.shipsBy[k])}`).join(" · ");
+  return `<div class="section-h">Keeper's logbook</div><div class="logbook">${cells.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>
+    ${fleet?`<p class="fleet">${fleet}</p>`:""}`;
+}
+
 export function renderGoals() {
   const ready=dailyReady(),streak=S.daily.last===today()||S.daily.last===yesterday()?S.daily.streak:0;
   const idx=ready?streak%7:(streak-1+7)%7;
@@ -87,7 +115,8 @@ export function renderGoals() {
     <button class="buy gem" data-ach="${a.id}" ${done||!ok?"disabled":""}>${done?"Claimed":"◆ "+a.gems}</button></div>`}).join("");
   $("p-goals").innerHTML=`<div class="daily"><div class="top"><div><h3>Daily keeper's ration</h3><p>Come back each day. Miss a day and the streak resets. Current streak: ${streak} day${streak===1?"":"s"}.</p></div>
     <button class="buy gem" data-daily ${ready?"":"disabled"}>${ready?"Claim ◆ "+DAILY[idx]:"Back tomorrow"}</button></div><div class="days">${days}</div></div>
-    <div class="section-h">Achievements</div>${ach}`;
+    ${contractsHtml()}
+    <div class="section-h">Achievements</div>${ach}${logbookHtml()}`;
 }
 
 /* ---------- Relight ---------- */
@@ -160,6 +189,9 @@ function onClick(e) {
   if("rush" in d&&S.lab){const c=rushCost();if(S.gems>=c){S.gems-=c;S.lab.until=Date.now();checkLab()}}
   if("daily" in d&&dailyReady()){const streak=S.daily.last===yesterday()?S.daily.streak+1:1;const g=DAILY[(streak-1)%7];
     S.daily={last:today(),streak};S.gems+=g;toast(`Day ${streak} ration: ◆ ${g}`);renderGoals();save()}
+  if(d.claim){const i=+d.claim,c=S.contracts[i];if(c&&isDone(c)){const l=contractLight();S.gems+=c.gems;earn(l);S.contractsDone++;
+    toast(`Contract done: ◆ ${c.gems} + ☀ ${fmt(l)}`);replaceContract(i);renderGoals();save()}}
+  if(d.swap){const i=+d.swap;if(S.contracts[i]&&S.gems>=SWAP_COST){S.gems-=SWAP_COST;replaceContract(i);renderGoals();save()}}
   if(d.ach){const a=ACH.find(x=>x.id===d.ach);if(a&&!S.ach.includes(a.id)&&a.cur(S)>=a.goal){S.ach.push(a.id);S.gems+=a.gems;toast(`${a.name}: ◆ ${a.gems}`);renderGoals();save()}}
   if("relight" in d){const p=pendingLumens();if(p<1)return;
     openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, and purchases stay.`,yes:"Relight",cls:"glass",cb:()=>{

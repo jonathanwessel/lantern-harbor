@@ -21,6 +21,8 @@ export const defaults = () => ({
   lifetime:0, run:0, taps:0, lumens:0, relights:0, golden:0, charter:false, ach:[], daily:{last:"",streak:0}, buyQty:1, lastSeen:0,
   // v0.3
   research:{}, lab:null, birds:0, albatross:0, weatherShips:0, frenzyUntil:0,
+  // v0.4
+  contracts:[], contractsDone:0, bestCombo:0, shipsBy:{}, playTime:0,
 });
 
 /** The live game state. Other modules import this binding and mutate its fields. */
