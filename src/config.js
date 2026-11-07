@@ -63,6 +63,7 @@ export const RESEARCH = [
   {id:"birds",name:"Ornithology",desc:"Birds visit 30% more often and pay +50% per level",max:5,base:5000,grow:5,time:40},
   {id:"lure",name:"Bird Lure",desc:"Birds land at the lantern on their own after a few seconds, for 60% of the reward (+10% per level). Levels make them come sooner.",max:5,base:6000,grow:5,time:45},
   {id:"lanes",name:"Shipping Lanes",desc:"One more ship in the harbor at a time per level",max:4,base:15000,grow:6,time:60},
+  {id:"flares",name:"Flare Battery",desc:"One more flare and faster reloads per level",max:5,base:4000,grow:5,time:40},
   {id:"lookout",name:"Lookout Post",desc:"Golden ships appear 20% more often per level",max:5,base:8000,grow:5,time:45},
   {id:"signals",name:"Fog Signals",desc:"Fog and storm ship bonuses +0.5x per level",max:5,base:20000,grow:6,time:60},
   {id:"charts",name:"Gilded Charts",desc:"Golden ships pay +50% per level",max:5,base:50000,grow:6,time:60},
@@ -106,6 +107,7 @@ export const CONTRACTS = [
   {kind:"tap",text:n=>`Tap the lamp ${n} times`,goal:[150,400],round:50,gems:2},
   {kind:"combo",text:n=>`Reach a ${n}-ship guiding combo`,goal:[4,9],gems:4,max:true},
   {kind:"freighter",text:n=>`Guide ${n} freighter${n>1?"s":""}`,goal:[2,4],gems:3},
+  {kind:"skua",text:n=>`Shoot down ${n} skua${n>1?"s":""}`,goal:[3,8],gems:3,need:S=>S.lifetime>=2000},
   {kind:"clipper",text:n=>`Guide ${n} clipper${n>1?"s":""} before they slip away`,goal:[2,5],gems:3},
 ];
 
@@ -132,6 +134,7 @@ export const TRAITS = {
   scholar:{name:"Scholar",home:"obs",perk:"Finishing research early costs half the gems"},
   birder:{name:"Birder",home:"look",perk:"Birds pay +10% per level"},
   eagle:{name:"Eagle Eye",home:"look",perk:"Golden ships pay +10% per level"},
+  sharp:{name:"Sharpshooter",home:"lamp",perk:"Fires flares at raiders on their own (every 6s, faster with levels)"},
 };
 
 /** Keeper level from seconds of service: 1 to start, then levels at 2m, 8m, 18m, 32m ... 2.7h for 10. */
@@ -168,4 +171,10 @@ export const NETWORK_BONUS = .1;
 ACH.push(
   {id:"fjord",name:"Northern Lights",desc:"Visit Frostwatch Fjord",gems:20,cur:S=>S.visited.includes("fjord")?1:0,goal:1},
   {id:"reef",name:"Island Time",desc:"Visit Sunreef Atoll",gems:25,cur:S=>S.visited.includes("reef")?1:0,goal:1},
+);
+
+ACH.push(
+  {id:"skua1",name:"Flare Up",desc:"Shoot down a skua",gems:5,cur:S=>S.skuas,goal:1},
+  {id:"raid5",name:"Raid Breaker",desc:"Repel 5 skua raids",gems:15,cur:S=>S.raids,goal:5},
+  {id:"skua100",name:"Sharp Eyes",desc:"Shoot down 100 skuas",gems:20,cur:S=>S.skuas,goal:100},
 );

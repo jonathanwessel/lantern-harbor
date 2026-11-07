@@ -103,7 +103,7 @@ function logbookHtml() {
   const cells = [
     ["Light, all time", fmt(S.lifetime)], ["Time played", hms(S.playTime)], ["Lamp taps", fmt(S.taps)],
     ["Ships guided", fmt(S.ships)], ["Best combo", S.bestCombo], ["Golden ships", S.golden],
-    ["Birds caught", S.birds], ["Contracts done", S.contractsDone], ["Research levels", lv],
+    ["Birds caught", S.birds], ["Skuas downed", S.skuas], ["Raids repelled", S.raids], ["Contracts done", S.contractsDone], ["Research levels", lv],
     ["Relights", S.relights], ["Keepers", S.keepers.length], ["Harbors", `${unlockedCount()} / ${Object.keys(HARBORS).length}`], ["Achievements", `${S.ach.length} / ${ACH.length}`],
   ];
   const fleet = Object.entries(SHIPS).filter(([k])=>S.shipsBy[k]).map(([k,c])=>`${c.name} ${fmt(S.shipsBy[k])}`).join(" · ");

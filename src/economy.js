@@ -51,6 +51,16 @@ export const lureMult = () => .5+.1*lvl("lure");
 /** Golden ship chance per second. */
 export const goldChance = () => (S.charter?1/45:1/90)*(1+.2*lvl("lookout"))*lookMult()*mods().gold;
 
+/* Raiders and flares. */
+export const flareMax = () => 3 + lvl("flares");
+export const flareReload = () => 2.5 - .3*lvl("flares");
+/** Light a skua steals per second while it's over the harbor (also capped at 1% of your light per second). */
+export const skuaSteal = () => Math.max(perSec()*.06, perTap()*.3, 1);
+export const skuaBounty = () => Math.max(perSec()*20, perTap()*15, 25);
+export const raidBonus = () => Math.max(perSec()*60, perTap()*40, 100);
+/** Seconds between a Sharpshooter's shots (0 = no Sharpshooter at home in the Lamp Room). */
+export const sharpInterval = () => { const l = perkLevel("sharp"); return l ? Math.max(1.5, 6 - .4*l) : 0; };
+
 /** Offline earnings cap, in hours. */
 export const offlineCapH = () => 4 + lvl("tides");
 

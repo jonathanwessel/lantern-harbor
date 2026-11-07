@@ -125,6 +125,10 @@ const SFX = {
   chime: () => [0,2,4].forEach((i,k) => tone({ f:note(i+5), type:"sine", dur:.7, vol:.1, at:k*.08 })),
   relight: () => { noiseHit({ freq:600, type:"bandpass", dur:1.2, vol:.25, attack:.4 }); [0,2,4,7].forEach((i,k) => tone({ f:note(i), type:"triangle", dur:1.6, vol:.1, at:.5+k*.12 })); },
   error: () => tone({ f:220, f2:180, type:"square", dur:.12, vol:.03 }),
+  flare: () => { noiseHit({ freq:1800, type:"bandpass", dur:.25, vol:.18, attack:.01 }); tone({ f:500, f2:1400, type:"sine", dur:.2, vol:.04 }); },
+  boom: () => { noiseHit({ freq:900, dur:.35, vol:.3, attack:.003 }); tone({ f:140, f2:60, type:"sine", dur:.3, vol:.12, attack:.003 }); },
+  squawk: () => { tone({ f:900, f2:420, type:"sawtooth", dur:.18, vol:.05 }); tone({ f:760, f2:380, type:"sawtooth", dur:.14, vol:.04, at:.16 }); },
+  alarm: () => [0,1,0,1].forEach((i,k) => tone({ f:i?660:880, type:"triangle", dur:.16, vol:.09, at:k*.18 })),
 };
 
 /** Play a named sound effect. */

@@ -14,16 +14,10 @@ must load every older save without losing anything.
 - **v0.6.0** Keepers: hire, assign to four posts, level up, traits with home-post perks.
 - **v0.7.0** New Shores: Frostwatch Fjord and Sunreef Atoll, sea chart travel, per-harbor
   progress, harbor network bonus.
+- **v0.8.0** Flares & Raiders: skua raids that steal light, the Flare Gun, Flare Battery research,
+  Sharpshooter keepers.
 
 ## Next
-
-### v0.8 — Flares & Raiders
-- Skua raids: dark pirate seabirds swoop in and steal light while they're on screen.
-- Flare Gun: tap a raider to fire a signal flare from the lantern gallery; a hit pays a bounty.
-  Limited shots that reload, so aiming matters.
-- Flare Battery research (more shots, faster reload) and a Sharpshooter keeper trait that
-  shoots raiders automatically.
-- Friendly birds (gulls, albatrosses, petrels) keep working as they do now.
 
 ### v0.9 — Seasons
 - A rotating season every week (autumn gales, winter ice, spring migration) with its own visuals,

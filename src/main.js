@@ -7,7 +7,7 @@ import { newHarbors } from "./harbors.js";
 import { fmt, $ } from "./util.js";
 import { openModal, initDialogs, toast } from "./ui/dialogs.js";
 import { tab, renderAll, renderRelight, renderGoals, refreshUp, refreshResearch, researchReady, checkLab, initPanels } from "./ui/panels.js";
-import { draw, hasGold, spawnGold, spawnBird, birdCount, comboState, initScene } from "./scene.js";
+import { draw, hasGold, spawnGold, spawnBird, birdCount, comboState, initScene, spawnRaider, startRaid, raidActive, raiderCount, flareState } from "./scene.js";
 import { ensureContracts, contractsReady } from "./contracts.js";
 import { unlock, ambience, sfx } from "./audio.js";
 import { addXp, ensureCandidates, lookMult } from "./keepers.js";
@@ -34,6 +34,11 @@ function everySecond(){
     if(Math.random()<b*(isDay()?2:1)/30)spawnBird("gull");
     else if(Math.random()<b/300)spawnBird("albatross");
     else if(stormy()&&Math.random()<b/25)spawnBird("petrel")}
+  // raiders: lone skuas now and then, and occasional raids, once the harbor is worth robbing
+  if(S.lifetime>=2000){
+    if(!raidActive()&&Math.random()<1/200)startRaid(3+Math.floor(Math.random()*4));
+    else if(raiderCount()<2&&Math.random()<mods().birds/110)spawnRaider();
+  }
   if(tickWeather())toast(weather.kind==="fog"?`${weatherName()} rolls in. Guided ships pay extra.`:weather.kind==="storm"?`${weatherName()}! Taps and ships pay extra.`:"The weather clears.");
   checkLab();
   const ups=addXp(1);ups.forEach(k=>{toast(`${k.name} is now level ${Math.min(10,1+Math.floor(Math.sqrt(k.xp/120)))}`);sfx("chime")});
@@ -57,6 +62,7 @@ function loop(t){
     $("hname").textContent=harbor().name;$("hdot").hidden=!newHarbors().length;
     const c=comboState(),cb=$("combo");if(c.n>=2){cb.hidden=false;cb.textContent=`Combo ${c.n} · ×${c.mult.toFixed(1)}`}else cb.hidden=true;
     $("goldb").hidden=!hasGold();
+    const fs=flareState(),fb=$("flares");if(fs.raiders||fs.ammo<fs.max){fb.hidden=false;fb.textContent=`Flares ${"●".repeat(fs.ammo)}${"○".repeat(fs.max-fs.ammo)}`+(fs.raid?` · Raid: ${fs.raid} left`:fs.raiders?` · ${fs.raiders} skua${fs.raiders>1?"s":""}`:"")}else fb.hidden=true;
     ambience({fog:foggy()?1:0, storm:stormy()?1:0, day:daylight(), bell:!!S.owned.bell});
     $("gdot").hidden=!(dailyReady()||unclaimed().length||contractsReady());$("rdot").hidden=pendingLumens()<1;$("resdot").hidden=!researchReady();$("kdot").hidden=!keepersReady();
     if(tab==="up")refreshUp();

@@ -11,7 +11,8 @@
 import { COLORS, BIRDS, SHIPS } from "./config.js";
 import { track } from "./contracts.js";
 import { S, lvl } from "./state.js";
-import { perTap, earn, shipBonus, goldReward, gullReward, autoCooldown, lureDelay, lureMult, COMBO_WINDOW, comboMult, maxShips } from "./economy.js";
+import { perTap, earn, shipBonus, goldReward, gullReward, autoCooldown, lureDelay, lureMult, COMBO_WINDOW, comboMult, maxShips,
+  flareMax, flareReload, skuaSteal, skuaBounty, raidBonus, sharpInterval } from "./economy.js";
 import { daylight, dayPhase, foggy, stormy, badWeather, isNight } from "./world.js";
 import { fmt, $ } from "./util.js";
 import { sfx } from "./audio.js";
@@ -107,6 +108,7 @@ function tap(px,py){
     const r=goldReward();earn(r);S.gems+=1;S.golden++;track("gold");sfx("gold");buzz([15,40,15]);
     floats.push({x:gold.x,y:gold.y-24,a:1.3,t:"★ +"+fmt(r)+" +◆1",c:"#ffd84a"});burst(gold.x,gold.y-6,"#ffd84a",18);gold=null;flash=1;return}
   if(px!=null){const b=birds.find(b=>birdHit(b,px,py));if(b){catchBird(b);return}}
+  if(flareTap(px,py))return;
   const g=perTap();earn(g);S.taps++;track("tap");flash=1;
   floats.push({x:330+Math.random()*40-20,y:52,a:1,t:"+"+fmt(g)});
   // Tap a ship to guide that one; otherwise the beam picks the first unguided ship in view.
@@ -123,7 +125,127 @@ export function initScene(){
   for(let i=0;i<6;i++)floes.push({x:Math.random()*W,y:200+Math.random()*90,w:14+Math.random()*26,v:.05+Math.random()*.08,p:Math.random()*6});
   cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();tap((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)});
   cv.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();
-    if(gold)tap(gold.x,gold.y);else if(birds[0])tap(birds[0].x,birds[0].y);else tap(null,null)}});
+    const r=raiders.find(r=>!r.leaving);
+    if(gold)tap(gold.x,gold.y);else if(r&&ammo>0){const [x,y]=lead(r,Math.hypot(r.x-GALLERY[0],r.y-GALLERY[1])/FLARE_SPEED);fire(x,y)}
+    else if(birds[0])tap(birds[0].x,birds[0].y);else tap(null,null)}});
+}
+
+/* ---------- Raiders and the Flare Gun ----------
+ * Skuas swoop over the harbor stealing light. Tap the sky near one to fire a flare from the lantern
+ * gallery: it flies to where you tapped and bursts, downing any skua inside the blast. A downed
+ * skua drops what it stole plus 50%, and a bounty. Flares are limited and reload over time. */
+const GALLERY = [340, 74], FLARE_SPEED = 1400, BLAST = 28;
+let raiders = [], fallen = [], flares = [], blasts = [];
+let ammo = 3, reloadT = 0, sharpT = 0, dryT = 0;
+let raid = null;           // { total, spawned, left, shot, next }
+let hinted = false;
+
+export const raiderCount = () => raiders.filter(r=>!r.leaving).length;
+export const flareState = () => ({ ammo, max: flareMax(), reload: reloadT, raid: raid ? raid.left : 0, raiders: raiderCount() });
+
+function spawnSkua(inRaid){
+  const dir=Math.random()<.5?1:-1;
+  raiders.push({x:dir>0?-30:W+30,y:40+Math.random()*110,base:0,dir,v:1.6+Math.random()*.6,p:Math.random()*6,age:0,life:16+Math.random()*8,stolen:0,tick:0,leaving:false,raid:inRaid});
+  const r=raiders[raiders.length-1];r.base=r.y;
+  if(!hinted&&!S.skuas){hinted=true;setTimeout(()=>floats.push({x:W/2,y:120,a:2.2,t:"A skua is stealing light! Tap it to fire a flare",c:"#ff8a6b"}),600)}
+}
+/** A lone skua drifts in. */
+export function spawnRaider(){ spawnSkua(false); }
+/** A raid: several skuas arrive a second or so apart. */
+export function startRaid(n){ raid={total:n,spawned:0,left:n,shot:0,next:0}; sfx("alarm"); }
+export const raidActive = () => !!raid;
+
+function raiderDone(r, shot){
+  if(!r.raid||!raid)return;
+  raid.left--; if(shot)raid.shot++;
+  if(raid.left<=0){
+    if(raid.shot===raid.total){const b=raidBonus();earn(b);S.gems+=1;S.raids++;
+      floats.push({x:W/2,y:110,a:2,t:`Raid repelled! +☀${fmt(b)} +◆1`,c:"#5fd3c4"});sfx("chime");}
+    else floats.push({x:W/2,y:110,a:1.6,t:"The raiders flew off",c:"#ff8a6b"});
+    raid=null;
+  }
+}
+
+function downSkua(r){
+  raiders.splice(raiders.indexOf(r),1);S.skuas++;track("skua");
+  const bounty=skuaBounty();S.coins+=r.stolen;earn(bounty+r.stolen*.5);
+  const gem=Math.random()<.08;if(gem)S.gems+=1;
+  floats.push({x:r.x,y:r.y-14,a:1.2,t:`✸ +${fmt(bounty+r.stolen*1.5)}${gem?" +◆1":""}`,c:"#ffb066"});
+  fallen.push({x:r.x,y:r.y,vx:r.v*r.dir*.4,vy:-1,rot:0,a:1,dir:r.dir});
+  burst(r.x,r.y,"#3b3430",10);burst(r.x,r.y,"#e9f0f7",4);
+  sfx("squawk");buzz([12,30,12]);
+  raiderDone(r,true);
+}
+
+/** Fire a flare at (tx,ty). `auto` = fired by a Sharpshooter keeper (free). */
+function fire(tx,ty,auto=false){
+  if(!auto){ if(ammo<=0)return false; ammo--; if(reloadT<=0)reloadT=flareReload(); }
+  const [x,y]=GALLERY,dist=Math.hypot(tx-x,ty-y)||1;
+  flares.push({x,y,tx,ty,vx:(tx-x)/dist*FLARE_SPEED,vy:(ty-y)/dist*FLARE_SPEED,left:dist/FLARE_SPEED,trail:[]});
+  sfx("flare");flash=Math.max(flash,.4);
+  return true;
+}
+
+/** Where a skua will be after `s` seconds (for leading shots). */
+function lead(r,s){const f=s*60;return [r.x+r.v*r.dir*f,r.base+Math.sin((r.age+s)*2+r.p)*26];}
+
+function tickRaiders(dt,k,t){
+  // raid arrivals
+  if(raid&&raid.spawned<raid.total){raid.next-=dt;if(raid.next<=0){spawnSkua(true);raid.spawned++;raid.next=.8+Math.random()*.8}}
+  // reload
+  if(ammo<flareMax()){reloadT-=dt;if(reloadT<=0){ammo++;reloadT=ammo<flareMax()?flareReload():0}}else reloadT=0;
+  if(dryT>0)dryT-=dt;
+  // Sharpshooter keeper: shoots on their own, leading the target
+  const iv=sharpInterval();
+  if(iv&&raiders.length){sharpT-=dt;if(sharpT<=0){const r=raiders.find(r=>!r.leaving&&r.x>20&&r.x<W-20);
+    if(r){const d=Math.hypot(r.x-GALLERY[0],r.y-GALLERY[1])/FLARE_SPEED,[x,y]=lead(r,d);fire(x,y,true);sharpT=iv}}}
+  // skuas: swoop back and forth stealing light, then leave
+  const steal=skuaSteal();
+  raiders.forEach(r=>{r.age+=dt;
+    if(!r.leaving&&r.age>r.life)r.leaving=true;
+    r.x+=r.v*r.dir*k;r.y=r.base+Math.sin(r.age*2+r.p)*26;
+    if(!r.leaving&&((r.x>W-30&&r.dir>0)||(r.x<30&&r.dir<0)))r.dir*=-1;
+    if(!r.leaving&&r.x>0&&r.x<W){const amt=Math.min(S.coins*.01*dt,steal*dt);S.coins-=amt;r.stolen+=amt;S.stolen+=amt;r.tick+=dt;
+      if(r.tick>2.5&&r.stolen>0){r.tick=0;floats.push({x:r.x,y:r.y+16,a:.9,t:"-"+fmt(r.stolen),c:"#ff7a6b"})}}
+  });
+  raiders=raiders.filter(r=>{const gone=r.leaving&&(r.x<-40||r.x>W+40);if(gone)raiderDone(r,false);return !gone});
+  // flares in flight
+  flares.forEach(f=>{f.trail.push([f.x,f.y]);if(f.trail.length>6)f.trail.shift();const s=Math.min(dt,f.left);f.x+=f.vx*s;f.y+=f.vy*s;f.left-=dt;
+    if(f.left<=0){blasts.push({x:f.tx,y:f.ty,r:4,a:1});sfx("boom");burst(f.tx,f.ty,"#ffb066",12);
+      raiders.filter(r=>Math.hypot(r.x-f.tx,r.y-f.ty)<BLAST).forEach(downSkua)}});
+  flares=flares.filter(f=>f.left>0);
+  blasts.forEach(b=>{b.r+=2.2*k;b.a-=.06*k});blasts=blasts.filter(b=>b.a>0);
+  fallen.forEach(f=>{f.vy+=.12*k;f.x+=f.vx*k;f.y+=f.vy*k;f.rot+=.15*k;f.a-=.012*k});fallen=fallen.filter(f=>f.a>0&&f.y<H+20);
+}
+
+function drawSkua(x,y,dir,t,p,rot=0,alpha=1){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(dir*1.35,1.35);ctx.globalAlpha=alpha;
+  const flap=Math.sin(t/85+p);
+  ctx.fillStyle=rgba("#ff5a4a",.12+.06*Math.sin(t/160+p));ell(0,0,18,12);
+  ctx.strokeStyle="#2b2522";ctx.fillStyle="#3b3430";ctx.lineWidth=2.4;ctx.lineJoin="round";ctx.beginPath();
+  ctx.moveTo(-13,-flap*7);ctx.lineTo(-6,-3-flap*2);ctx.lineTo(0,0);ctx.lineTo(6,-3-flap*2);ctx.lineTo(13,-flap*7);ctx.stroke();
+  ell(1,1,5,2.4);ctx.beginPath();ctx.moveTo(-4,1);ctx.lineTo(-8,3);ctx.lineTo(-4,3);ctx.fill();
+  ctx.fillStyle="#ff3b2f";ctx.fillRect(4,-.5,1.4,1.4);ctx.fillStyle="#c9b27a";ctx.fillRect(6,.5,2.5,1);
+  ctx.restore();ctx.globalAlpha=1;
+}
+
+function drawRaiders(t){
+  raiders.forEach(r=>drawSkua(r.x,r.y,r.dir,t,r.p));
+  fallen.forEach(f=>drawSkua(f.x,f.y,f.dir,t,0,f.rot,f.a));
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  flares.forEach(f=>{ctx.strokeStyle=rgba("#ff8a4a",.6);ctx.lineWidth=2;ctx.beginPath();f.trail.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.lineTo(f.x,f.y);ctx.stroke();
+    ctx.fillStyle="#fff1c9";ell(f.x,f.y,2.5,2.5);ctx.fillStyle=rgba("#ff8a4a",.4);ell(f.x,f.y,7,7)});
+  blasts.forEach(b=>{ctx.strokeStyle=rgba("#ffb066",b.a);ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
+    if(b.a>.7){ctx.fillStyle=rgba("#fff1c9",(b.a-.7)*2);ell(b.x,b.y,b.r*.6,b.r*.6)}});
+  ctx.restore();
+}
+
+/** Called by tap(): fire at a sky tap while raiders are around. Returns true if it used the tap. */
+function flareTap(px,py){
+  if(px==null||!raiders.length||py>SEA-4)return false;
+  if(fire(px,py))return true;
+  if(dryT<=0){dryT=1.5;floats.push({x:px,y:py-10,a:.9,t:"Reloading…",c:"#8aa2bb"})}
+  return false;
 }
 
 /* ---------- Drawing pieces ---------- */
@@ -413,6 +535,7 @@ export function draw(dt=1/60){
   // Bird Lure: birds land at the lantern on their own after a few seconds
   if(lvl("lure")>0){const b=birds.find(b=>b.age>=lureDelay());if(b)catchBird(b,true)}
   birds=birds.filter(b=>b.x>-40&&b.x<W+40);
+  tickRaiders(dt,k,t);drawRaiders(t);
   drawWeather(d,t,k);
   sparks.forEach(p=>{p.x+=p.vx*k;p.y+=p.vy*k;p.vy+=.05*k;p.a-=.03*k;ctx.fillStyle=rgba(p.c,p.a);ctx.fillRect(p.x,p.y,2,2)});sparks=sparks.filter(p=>p.a>0);
   ctx.font="600 16px 'IBM Plex Mono', monospace";ctx.textAlign="center";ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=4;

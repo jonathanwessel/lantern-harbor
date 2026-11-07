@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.8.0 — Flares & Raiders
+
+**New**
+- **Skuas.** Once you've earned 2K light all-time, dark pirate seabirds start showing up: alone now
+  and then, and in **raids** of 3–6 with an alarm. While over the harbor each one steals light
+  (about 6% of your per-second income, never more than 1% of your light per second).
+- **Flare Gun.** Tap the sky near a skua to fire a signal flare from the lantern gallery. It flies
+  to where you tapped and bursts, so lead fast birds a little. A downed skua tumbles into a puff
+  of feathers and drops everything it stole plus 50%, a bounty, and sometimes a gem.
+  - 3 flares to start, reloading one at a time. A HUD badge shows your flares and the raid.
+  - Repel a whole raid for a bonus and a gem.
+  - Out of flares? Sky taps go back to being lamp taps, so no tap is wasted.
+  - Keyboard: Enter/Space fires at the nearest skua (aimed for you).
+- **Flare Battery** research: +1 flare and faster reloads per level.
+- **Sharpshooter** keeper trait (home: Lamp Room): fires at raiders on their own, every 6s
+  and faster with levels.
+- Sounds: flare launch, burst, skua squawk, raid alarm.
+- New contract (shoot down skuas), 3 achievements (Flare Up, Raid Breaker, Sharp Eyes),
+  and skuas downed / raids repelled in the Logbook.
+
+**Fixed**
+- The stats panel and badges over the scene were blocking taps on birds and golden ships
+  behind them.
+
 ## v0.7.0 — New Shores
 
 **New**

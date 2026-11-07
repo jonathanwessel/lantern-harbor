@@ -27,6 +27,8 @@ export const defaults = () => ({
   keepers:[], candidates:[],
   // v0.7: active harbor, parked progress of the others, harbors visited
   harbor:"lantern", harbors:{}, visited:["lantern"],
+  // v0.8
+  skuas:0, raids:0, stolen:0,
 });
 
 /** The live game state. Other modules import this binding and mutate its fields. */

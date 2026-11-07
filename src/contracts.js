@@ -7,7 +7,7 @@ export const SLOTS = 3;
 export const SWAP_COST = 2;
 
 function make(exclude) {
-  const pool = CONTRACTS.filter(c => !exclude.includes(c.kind));
+  const pool = CONTRACTS.filter(c => !exclude.includes(c.kind) && (!c.need || c.need(S)));
   const t = pool[Math.random()*pool.length|0];
   let goal = t.goal[0] + Math.floor(Math.random()*(t.goal[1]-t.goal[0]+1));
   if (t.round) goal = Math.max(t.round, Math.round(goal/t.round)*t.round);
