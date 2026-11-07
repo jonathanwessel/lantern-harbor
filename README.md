@@ -49,6 +49,7 @@ reloads on your click, saving first.
 | `src/world.js` | Day/night cycle and weather |
 | `src/contracts.js` | Harbor Contracts |
 | `src/harbors.js` | Harbors: unlocks, travel, per-harbor progress |
+| `src/seasons.js` | Weekly seasons: calendar, rules, challenges, rewards |
 | `src/themes.js` | Per-harbor scene palettes and features |
 | `src/keepers.js` | Keepers: hiring, posts, levels, trait perks |
 | `src/ui/keepersPanel.js` | Keepers tab |

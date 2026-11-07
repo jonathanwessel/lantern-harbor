@@ -12,6 +12,7 @@ import { renderKeepers, keeperClick, keeperChange } from "./keepersPanel.js";
 import { HARBORS, NETWORK_BONUS } from "../config.js";
 import { isUnlocked, unlockedCount, nextHarbor, harborRun, travelTo, newHarbors } from "../harbors.js";
 import { networkMult } from "../economy.js";
+import { season, seasonEnds, seasonState, seasonClaimable, claimSeason } from "../seasons.js";
 
 /** Currently selected tab id. */
 export let tab = "up";
@@ -103,12 +104,27 @@ function logbookHtml() {
   const cells = [
     ["Light, all time", fmt(S.lifetime)], ["Time played", hms(S.playTime)], ["Lamp taps", fmt(S.taps)],
     ["Ships guided", fmt(S.ships)], ["Best combo", S.bestCombo], ["Golden ships", S.golden],
-    ["Birds caught", S.birds], ["Skuas downed", S.skuas], ["Raids repelled", S.raids], ["Contracts done", S.contractsDone], ["Research levels", lv],
+    ["Birds caught", S.birds], ["Skuas downed", S.skuas], ["Raids repelled", S.raids], ["Contracts done", S.contractsDone], ["Seasons finished", S.seasonsDone], ["Research levels", lv],
     ["Relights", S.relights], ["Keepers", S.keepers.length], ["Harbors", `${unlockedCount()} / ${Object.keys(HARBORS).length}`], ["Achievements", `${S.ach.length} / ${ACH.length}`],
   ];
   const fleet = Object.entries(SHIPS).filter(([k])=>S.shipsBy[k]).map(([k,c])=>`${c.name} ${fmt(S.shipsBy[k])}`).join(" · ");
   return `<div class="section-h">Keeper's logbook</div><div class="logbook">${cells.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>
     ${fleet?`<p class="fleet">${fleet}</p>`:""}`;
+}
+
+function seasonHtml() {
+  const se = season(), st = seasonState(), left = Math.max(0, seasonEnds() - Date.now());
+  const dd = Math.floor(left/864e5), hh = Math.floor(left%864e5/36e5), mm = Math.floor(left%36e5/6e4);
+  const beam = COLORS.find(c => c.id === se.color);
+  const tasks = se.tasks.map(t => { const n = Math.min(st.prog[t.kind]||0, t.goal);
+    return `<div class="stask"><span>${t.text}</span><span class="own">${fmt(n)} / ${fmt(t.goal)}</span><div class="bar"><i style="width:${n/t.goal*100}%"></i></div></div>`; }).join("");
+  const btn = st.claimed ? `<button class="buy gem" disabled>Claimed</button>`
+    : `<button class="buy gem" data-season ${seasonClaimable()?"":"disabled"}>◆ ${se.gems} + beam</button>`;
+  return `<div class="season s-${se.id}"><div class="top"><div><span class="s-label">This week's season</span><h3>${se.name}</h3>
+      <p>${se.blurb} <span class="own">Ends in ${dd?dd+"d ":""}${hh}h ${dd?"":mm+"m"}</span></p></div>${btn}</div>
+    <span class="rules">${se.rules.map(r=>`<i>${r}</i>`).join("")}</span>
+    <div class="stasks">${tasks}</div>
+    <p class="s-reward"><span class="swatch" style="background:${beam.hex}"></span>Reward: the <b>${beam.name}</b> beam (yours to keep) and ◆ ${se.gems}. Progress resets when the season changes.</p></div>`;
 }
 
 export function renderGoals() {
@@ -119,7 +135,7 @@ export function renderGoals() {
   const ach=ACH.map(a=>{const done=S.ach.includes(a.id),c=Math.min(a.cur(S),a.goal),ok=c>=a.goal;
     return `<div class="row ${done?"done":""}"><div><h3>${a.name}</h3><p>${a.desc} <span class="own">· ${fmt(c)} / ${fmt(a.goal)}</span></p>${done?"":`<div class="bar"><i style="width:${c/a.goal*100}%"></i></div>`}</div>
     <button class="buy gem" data-ach="${a.id}" ${done||!ok?"disabled":""}>${done?"Claimed":"◆ "+a.gems}</button></div>`}).join("");
-  $("p-goals").innerHTML=`<div class="daily"><div class="top"><div><h3>Daily keeper's ration</h3><p>Come back each day. Miss a day and the streak resets. Current streak: ${streak} day${streak===1?"":"s"}.</p></div>
+  $("p-goals").innerHTML=`${seasonHtml()}<div class="daily"><div class="top"><div><h3>Daily keeper's ration</h3><p>Come back each day. Miss a day and the streak resets. Current streak: ${streak} day${streak===1?"":"s"}.</p></div>
     <button class="buy gem" data-daily ${ready?"":"disabled"}>${ready?"Claim ◆ "+DAILY[idx]:"Back tomorrow"}</button></div><div class="days">${days}</div></div>
     ${contractsHtml()}
     <div class="section-h">Achievements</div>${ach}${logbookHtml()}`;
@@ -142,9 +158,9 @@ export function renderShop() {
     <button class="buy cash" data-pack="${p.id}">$${p.usd.toFixed(2)}</button></div>`).join("");
   const spend=GEMBUYS.filter(g=>!(g.once&&S[g.id])).map(g=>`<div class="row"><div><h3>${g.name}</h3><p>${g.desc}</p></div>
     <button class="buy gem" data-gb="${g.id}" ${S.gems<g.cost?"disabled":""}>◆ ${g.cost}</button></div>`).join("");
-  const cols=COLORS.map(c=>{const own=S.colors.includes(c.id),on=S.color===c.id;
-    return `<div class="row"><div><h3><span class="swatch" style="background:${c.hex}"></span>${c.name}</h3><p>Beam color, cosmetic only</p></div>
-    <button class="buy ${own?"":"gem"}" data-col="${c.id}" ${on||(!own&&S.gems<c.cost)?"disabled":""}>${on?"Equipped":own?"Equip":"◆ "+c.cost}</button></div>`}).join("");
+  const cols=COLORS.map(c=>{const own=S.colors.includes(c.id),on=S.color===c.id,se=c.season&&!own;
+    return `<div class="row ${se?"done":""}"><div><h3><span class="swatch" style="background:${c.hex}"></span>${c.name}</h3><p>${c.season?`Seasonal beam, earned in ${({spring:"Spring Migration",summer:"Summer Regatta",autumn:"Autumn Gales",winter:"Winter Ice"})[c.season]}`:"Beam color, cosmetic only"}</p></div>
+    <button class="buy ${own||se?"":"gem"}" data-col="${c.id}" ${on||se||(!own&&S.gems<c.cost)?"disabled":""}>${on?"Equipped":own?"Equip":se?"Season reward":"◆ "+c.cost}</button></div>`}).join("");
   $("p-shop").innerHTML=`<div class="section-h">Get gems</div>${packs}<div class="section-h">Spend gems</div>${spend}<div class="section-h">Beam colors</div>${cols}`;
 }
 
@@ -238,6 +254,7 @@ function onClick(e) {
   if("rush" in d&&S.lab){const c=rushCost();if(S.gems>=c){S.gems-=c;S.lab.until=Date.now();checkLab()}}
   if("daily" in d&&dailyReady()){const streak=S.daily.last===yesterday()?S.daily.streak+1:1;const g=DAILY[(streak-1)%7];
     S.daily={last:today(),streak};S.gems+=g;sfx("chime");toast(`Day ${streak} ration: ◆ ${g}`);renderGoals();save()}
+  if("season" in d){if(claimSeason()){sfx("chime");toast(`${season().name} complete! ◆ ${season().gems} and the ${COLORS.find(c=>c.id===season().color).name} beam`);renderGoals();save()}}
   if(d.claim){const i=+d.claim,c=S.contracts[i];if(c&&isDone(c)){const l=contractLight();S.gems+=c.gems;earn(l);S.contractsDone++;sfx("chime");
     toast(`Contract done: ◆ ${c.gems} + ☀ ${fmt(l)}`);replaceContract(i);renderGoals();save()}}
   if(d.swap){const i=+d.swap;if(S.contracts[i]&&S.gems>=SWAP_COST){S.gems-=SWAP_COST;replaceContract(i);renderGoals();save()}}
@@ -258,6 +275,7 @@ function onClick(e) {
     if(g.id==="charter"){S.charter=true;toast("Golden Charter signed")}
     renderShop();save()}
   if(d.col){const c=COLORS.find(x=>x.id===d.col);
+    if(c.season&&!S.colors.includes(c.id))return;
     if(!S.colors.includes(c.id)){if(S.gems<c.cost)return;S.gems-=c.cost;S.colors.push(c.id)}
     S.color=c.id;sfx("buy");renderShop();save()}
   if("settings" in d)showSettings();

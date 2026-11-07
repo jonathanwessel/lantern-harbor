@@ -160,3 +160,18 @@ body[data-harbor="reef"]{--sea:#07202a;--sea-2:#0c2c38;--sea-3:#143e4c;--line:#1
 .badge.flares{background:#ffb066;letter-spacing:.02em}
 /* HUD overlays must not swallow taps on birds, skuas and golden ships behind them */
 .stats,.badges{pointer-events:none}
+
+/* ---------- v0.9 ---------- */
+.season{display:grid;gap:10px;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--sea-2)}
+.season .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.season h3{margin:0;font-size:18px}
+.season p{margin:2px 0 0;color:var(--mute);font-size:13px;line-height:1.45}
+.s-label{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.s-spring{border-color:#ff9ecf55;background:linear-gradient(135deg,#ff9ecf14,transparent 60%),var(--sea-2)}
+.s-summer{border-color:#b8f25a55;background:linear-gradient(135deg,#b8f25a14,transparent 60%),var(--sea-2)}
+.s-autumn{border-color:#ff8a3d55;background:linear-gradient(135deg,#ff8a3d17,transparent 60%),var(--sea-2)}
+.s-winter{border-color:#9fd8ff55;background:linear-gradient(135deg,#9fd8ff14,transparent 60%),var(--sea-2)}
+.stasks{display:grid;gap:8px}
+.stask{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:14px}
+.stask .bar{grid-column:1/-1;margin-top:2px}
+.s-reward{display:flex;align-items:center;gap:2px}

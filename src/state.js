@@ -29,6 +29,8 @@ export const defaults = () => ({
   harbor:"lantern", harbors:{}, visited:["lantern"],
   // v0.8
   skuas:0, raids:0, stolen:0,
+  // v0.9: this week's season progress
+  season:null, seasonsDone:0,
 });
 
 /** The live game state. Other modules import this binding and mutate its fields. */

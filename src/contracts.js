@@ -2,6 +2,7 @@
  * claimed from the Goals tab and immediately replaced by a new one. */
 import { CONTRACTS } from "./config.js";
 import { S } from "./state.js";
+import { seasonTrack } from "./seasons.js";
 
 export const SLOTS = 3;
 export const SWAP_COST = 2;
@@ -26,6 +27,7 @@ export const contractsReady = () => S.contracts.some(isDone);
 
 /** Record progress. For "max" contracts (combo) `v` is the value reached, otherwise an amount. */
 export function track(kind, v=1) {
+  seasonTrack(kind, v);
   for (const c of S.contracts) if (c.kind === kind && !isDone(c)) c.n = template(c)?.max ? Math.max(c.n, v) : c.n + v;
 }
 

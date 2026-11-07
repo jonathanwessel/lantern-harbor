@@ -1,6 +1,7 @@
 /* The living harbor: day/night cycle and weather. Transient (not saved). */
 import { S, lvl } from "./state.js";
 import { HARBORS } from "./config.js";
+import { smod } from "./seasons.js";
 
 /** The harbor you are at. */
 export const harbor = () => HARBORS[S.harbor] || HARBORS.lantern;
@@ -34,7 +35,7 @@ export function tickWeather(now=Date.now()) {
     if (now > weather.until) { weather.kind = "clear"; return true; }
     return false;
   }
-  if (Math.random() < 1/120) {
+  if (Math.random() < smod().weather/120) {
     weather.kind = Math.random() < .55 ? "fog" : "storm";
     weather.start = now; weather.until = now + 35000 + Math.random()*20000;
     return true;
@@ -47,7 +48,7 @@ export const stormy = () => weather.kind === "storm";
 export const badWeather = () => weather.kind !== "clear";
 
 /** Multiplier on ship bonuses from the weather. */
-export const weatherShipMult = () => foggy() ? 3 + .5*lvl("signals") : stormy() ? 2 + .5*lvl("signals") : 1;
+export const weatherShipMult = () => (foggy() ? 3 + .5*lvl("signals") : stormy() ? 2 + .5*lvl("signals") : 1) + (badWeather() ? smod().gale : 0);
 
 /** Local name for the current weather ("Fog" at Lantern Harbor, "Blizzard" in the fjord...). */
 export const weatherName = (kind=weather.kind) => harbor().weather[kind] || kind;

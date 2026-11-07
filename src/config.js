@@ -18,6 +18,11 @@ export const COLORS = [
   {id:"aurora",name:"Aurora Violet",hex:"#b98cff",cost:60},
   {id:"ember",name:"Signal Red",hex:"#ff7a6b",cost:60},
   {id:"pearl",name:"Moon Pearl",hex:"#e9f0f7",cost:90},
+  // seasonal beams: earned by finishing a season's challenges, never sold
+  {id:"blossom",name:"Blossom Pink",hex:"#ff9ecf",cost:0,season:"spring"},
+  {id:"regatta",name:"Regatta Lime",hex:"#b8f25a",cost:0,season:"summer"},
+  {id:"maple",name:"Maple Orange",hex:"#ff8a3d",cost:0,season:"autumn"},
+  {id:"frost",name:"Frost Blue",hex:"#9fd8ff",cost:0,season:"winter"},
 ];
 
 /* Real-money packs. All purchases are SIMULATED for now. */
@@ -177,4 +182,25 @@ ACH.push(
   {id:"skua1",name:"Flare Up",desc:"Shoot down a skua",gems:5,cur:S=>S.skuas,goal:1},
   {id:"raid5",name:"Raid Breaker",desc:"Repel 5 skua raids",gems:15,cur:S=>S.raids,goal:5},
   {id:"skua100",name:"Sharp Eyes",desc:"Shoot down 100 skuas",gems:20,cur:S=>S.skuas,goal:100},
+);
+
+/* ---------- Seasons (one per real week, see seasons.js) ---------- */
+export const SEASONS = [
+  {id:"spring",name:"Spring Migration",color:"blossom",gems:30,blurb:"The flocks are flying north. Birds everywhere.",
+    mods:{birds:2,birdPay:1.5}, rules:["Birds twice as common","Birds pay ×1.5"],
+    tasks:[{kind:"bird",goal:30,text:"Catch 30 birds"},{kind:"albatross",goal:2,text:"Catch 2 albatrosses"},{kind:"day",goal:50,text:"Guide 50 ships by day"}]},
+  {id:"summer",name:"Summer Regatta",color:"regatta",gems:30,blurb:"Racing clippers crowd the harbor under bunting and long skies.",
+    mods:{lanes:1,clipper:3,combo:3}, rules:["One more ship at a time","Clippers three times as common","Combo window +3s"],
+    tasks:[{kind:"clipper",goal:15,text:"Guide 15 clippers"},{kind:"combo",goal:12,max:true,text:"Reach a 12-ship combo"},{kind:"ship",goal:150,text:"Guide 150 ships"}]},
+  {id:"autumn",name:"Autumn Gales",color:"maple",gems:30,blurb:"Gales sweep the coast, and the skuas ride in on them.",
+    mods:{weather:2,gale:1,raids:1.5}, rules:["Fog and storms twice as often","Bad-weather ships +1×","Skua raids 50% more often"],
+    tasks:[{kind:"weather",goal:40,text:"Guide 40 ships through bad weather"},{kind:"skua",goal:20,text:"Shoot down 20 skuas"},{kind:"raid",goal:2,text:"Repel 2 skua raids"}]},
+  {id:"winter",name:"Winter Ice",color:"frost",gems:30,blurb:"Ice on the water and the longest nights of the year.",
+    mods:{night:3,ghost:2,goldPay:1.5}, rules:["Ships pay ×3 at night","Ghost ships twice as common","Golden ships pay ×1.5"],
+    tasks:[{kind:"ghost",goal:3,text:"Guide 3 ghost ships"},{kind:"night",goal:60,text:"Guide 60 ships at night"},{kind:"gold",goal:5,text:"Catch 5 golden ships"}]},
+];
+
+ACH.push(
+  {id:"season1",name:"Seasoned",desc:"Finish a season's three challenges",gems:15,cur:S=>S.seasonsDone,goal:1},
+  {id:"season4",name:"A Year at Sea",desc:"Earn all four seasonal beams",gems:40,cur:S=>["blossom","regatta","maple","frost"].filter(c=>S.colors.includes(c)).length,goal:4},
 );

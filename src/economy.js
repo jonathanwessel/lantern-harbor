@@ -3,6 +3,7 @@ import { UPGRADES, ACH } from "./config.js";
 import { S, lvl } from "./state.js";
 import { isNight, stormy, badWeather, weatherShipMult, mods } from "./world.js";
 import { HARBORS, NETWORK_BONUS } from "./config.js";
+import { smod } from "./seasons.js";
 import { lampMult, dockMult, obsSpeed, lookMult, perkLevel } from "./keepers.js";
 
 export const boosted = () => Date.now() < S.boostUntil;
@@ -32,15 +33,16 @@ export const earn = n => { S.coins += n; S.lifetime += n; S.run += n; };
 export function shipBonus(auto=false, value=1, combo=1) {
   const base = auto ? Math.max(5, perTap()*3, perSec()*3)*(.5+.1*lvl("auto"))*(1+.05*perkLevel("salt")) : Math.max(5, perTap()*3)*combo;
   const weather = weatherShipMult() + (badWeather() ? .1*perkLevel("storm") : 0);
-  return base*value*mods().ship*(1+.5*lvl("dues"))*dockMult()*(isNight()?2:1)*weather;
+  return base*value*mods().ship*(1+.5*lvl("dues"))*dockMult()*(isNight()?smod().night:1)*weather;
 }
 /** Guiding combo: each manual guide within COMBO_WINDOW seconds of the last adds +10%, up to x3. */
 export const COMBO_WINDOW = 8;
+export const comboWindow = () => COMBO_WINDOW + smod().combo;
 export const comboMult = n => 1 + .1*Math.min(Math.max(0,n-1), 20);
 /** Ships in the harbor at once (3, plus Shipping Lanes research). */
-export const maxShips = () => 3 + lvl("lanes");
-export const goldReward = () => Math.max(perSec()*60, perTap()*50)*(1+.5*lvl("charts"))*(1+.1*perkLevel("eagle"));
-export const birdMult = () => (1+.5*lvl("birds"))*(1+.1*perkLevel("birder"));
+export const maxShips = () => 3 + lvl("lanes") + smod().lanes;
+export const goldReward = () => Math.max(perSec()*60, perTap()*50)*(1+.5*lvl("charts"))*(1+.1*perkLevel("eagle"))*smod().goldPay;
+export const birdMult = () => (1+.5*lvl("birds"))*(1+.1*perkLevel("birder"))*smod().birdPay;
 export const gullReward = () => Math.max(perSec()*45, perTap()*25, 20)*birdMult();
 /** Seconds between Clockwork Beam auto-guides, by level. */
 export const autoCooldown = () => [0,10,8,6,4.5,3][lvl("auto")]||0;

@@ -16,13 +16,14 @@ must load every older save without losing anything.
   progress, harbor network bonus.
 - **v0.8.0** Flares & Raiders: skua raids that steal light, the Flare Gun, Flare Battery research,
   Sharpshooter keepers.
+- **v0.9.0** Seasons: weekly rotating seasons with rules, visuals, challenges and seasonal beams.
 
 ## Next
 
-### v0.9 — Seasons
-- A rotating season every week (autumn gales, winter ice, spring migration) with its own visuals,
-  modifiers and achievements.
+### v1.0 — Take It With You
+- Install as an app (PWA): home-screen icon, full screen, works offline.
+- Play on your phone: host the release somewhere reachable (needs your OK, since it publishes the game).
+- First-run tutorial and a balance pass across all harbors and seasons.
 
 ### Later
-- Install as an app (PWA) so it works offline and from a phone's home screen.
 - Cloud save, so progress follows you without export codes.

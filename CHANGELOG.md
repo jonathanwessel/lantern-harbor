@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.9.0 — Seasons
+
+**New**
+- **A new season every week**, the same for everyone. It changes on Monday 00:00 UTC and rotates
+  Spring Migration, Summer Regatta, Autumn Gales, Winter Ice. This week is **Autumn Gales**.
+  Each season changes the rules and the look of every harbor:
+  - **Spring Migration**: birds twice as common and pay ×1.5. Greener coasts, drifting blossom,
+    migrating flocks.
+  - **Summer Regatta**: one more ship at a time, clippers three times as common, combo window +3s.
+    Bunting on the lighthouse and bright racing sails.
+  - **Autumn Gales**: fog and storms twice as often, bad-weather ships +1×, skua raids 50% more
+    often. Rust-colored hills and blowing leaves.
+  - **Winter Ice**: ships pay ×3 at night, ghost ships twice as common, golden ships pay ×1.5.
+    Ice floes and snow in every harbor.
+- **Seasonal challenges** (top of the Goals tab): three per season. Finish them for ◆ 30 and that
+  season's **beam color**, yours to keep: Blossom Pink, Regatta Lime, Maple Orange, Frost Blue.
+  If you finish but the week ends before you claim, the reward is added automatically.
+- The season shows in the conditions line, and seasonal beams appear in the Gem Shop (earned,
+  never sold).
+- 2 achievements: Seasoned, A Year at Sea. Seasons finished in the Logbook.
+
 ## v0.8.0 — Flares & Raiders
 
 **New**
