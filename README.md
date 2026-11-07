@@ -20,7 +20,14 @@ npm run dev       # live development build, at http://localhost:5174
 npm run stage     # build the current code and serve it at http://localhost:5175 (test a release before shipping)
 ```
 
-Play on **5173**, develop on **5174**, and check production builds (offline cache, install) on **5175**. They are different origins, so each keeps its own save and
+Play on **5173**, develop on **5174**, and check production builds (offline cache, install) on **5175**.
+
+The play server also listens on your local network, so other devices on the same Wi-Fi/LAN can
+open `http://<this PC's IP>:5173` (for example `http://192.168.1.162:5173`). Each address keeps its
+own save (browser storage is per address), so use **Menu > Export save / Import save** to move
+progress between `localhost` and the network address or another device. Offline mode and
+installing need a secure address (`localhost` or HTTPS), so they're unavailable over the plain
+network address; the game itself works normally. They are different origins, so each keeps its own save and
 nothing done in dev can touch the save you play with. The play server only ever serves tagged
 releases from `live/`; when a new one is published, the running game shows "Version X is ready" and
 reloads on your click, saving first.

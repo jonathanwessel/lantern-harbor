@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 5174 --strictPort",
     "build": "vite build",
-    "play": "vite preview --outDir live --port 5173 --strictPort",
+    "play": "vite preview --outDir live --host --port 5173 --strictPort",
     "release": "node scripts/release.mjs",
     "stage": "vite build --outDir .staging --emptyOutDir && vite preview --outDir .staging --port 5175 --strictPort"
   },
