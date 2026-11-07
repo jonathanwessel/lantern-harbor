@@ -32,11 +32,19 @@ nothing done in dev can touch the save you play with. The play server only ever 
 releases from `live/`; when a new one is published, the running game shows "Version X is ready" and
 reloads on your click, saving first.
 
+## Online
+
+The game is published with GitHub Pages at **https://jonathanwessel.github.io/lantern-harbor/**.
+`.github/workflows/pages.yml` builds and deploys it on every push to `main`, so publishing a
+release online is `git push origin main --tags` after `npm run release`. Installed copies (PWA)
+pick up the new version the next time they're opened, or show "Version X is ready" if open.
+
 ## Releasing
 
 1. Bump `version` in `package.json` and add a `CHANGELOG.md` entry.
 2. Commit.
 3. `npm run release` tags `v<version>` at HEAD and builds that tag (from a clean checkout) into `live/`.
+4. `git push origin main --tags` publishes it online.
 
 `npm run release -- v0.2.0` rebuilds an older tag, which is also how to roll back.
 
