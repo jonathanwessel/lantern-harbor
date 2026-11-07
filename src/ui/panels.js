@@ -9,6 +9,9 @@ import { toast, openModal, closeModal, copyText } from "./dialogs.js";
 import { sfx } from "../audio.js";
 import { settings, setSetting, onSettings } from "../settings.js";
 import { renderKeepers, keeperClick, keeperChange } from "./keepersPanel.js";
+import { HARBORS, NETWORK_BONUS } from "../config.js";
+import { isUnlocked, unlockedCount, nextHarbor, harborRun, travelTo, newHarbors } from "../harbors.js";
+import { networkMult } from "../economy.js";
 
 /** Currently selected tab id. */
 export let tab = "up";
@@ -101,7 +104,7 @@ function logbookHtml() {
     ["Light, all time", fmt(S.lifetime)], ["Time played", hms(S.playTime)], ["Lamp taps", fmt(S.taps)],
     ["Ships guided", fmt(S.ships)], ["Best combo", S.bestCombo], ["Golden ships", S.golden],
     ["Birds caught", S.birds], ["Contracts done", S.contractsDone], ["Research levels", lv],
-    ["Relights", S.relights], ["Keepers", S.keepers.length], ["Achievements", `${S.ach.length} / ${ACH.length}`],
+    ["Relights", S.relights], ["Keepers", S.keepers.length], ["Harbors", `${unlockedCount()} / ${Object.keys(HARBORS).length}`], ["Achievements", `${S.ach.length} / ${ACH.length}`],
   ];
   const fleet = Object.entries(SHIPS).filter(([k])=>S.shipsBy[k]).map(([k,c])=>`${c.name} ${fmt(S.shipsBy[k])}`).join(" · ");
   return `<div class="section-h">Keeper's logbook</div><div class="logbook">${cells.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>
@@ -126,9 +129,10 @@ export function renderGoals() {
 export function renderRelight() {
   const p=pendingLumens(),per=perLumen();
   $("p-relight").innerHTML=`<div class="relight"><h3>Relight the lamp</h3>
-  <p>Douse the lamp and start the night over. You lose your light and upgrades, but you keep gems, beam colors, research, keepers, purchases, and achievements, and you earn lumens. Each lumen permanently adds ${pct(per)}% to all light you earn.</p>
+  <p>Douse the lamp and start the night over. You lose this harbor's light and upgrades, but you keep gems, beam colors, research, keepers, purchases, and achievements, and you earn lumens. Each lumen permanently adds ${pct(per)}% to all light you earn.</p>
   <div class="nums"><div class="num"><span>Light this run</span><b id="r-run">${fmt(S.run)}</b></div><div class="num"><span>Lumens if you relight</span><b>+${p}</b></div><div class="num"><span>Current bonus</span><b>+${pct(S.lumens*per)}%</b></div></div>
   <p>${p<1?`You need 100K light this run to earn your first lumen.`:`After relighting, your bonus becomes +${pct((S.lumens+p)*per)}%.`}</p>
+  ${(()=>{const n=nextHarbor();if(!n)return"";const left=HARBORS[n].need-S.relights;return `<p class="discover">Relight ${left} more time${left>1?"s":""} to discover <b>${HARBORS[n].name}</b>.</p>`})()}
   <div><button class="buy glass" data-relight ${p<1?"disabled":""}>Relight for ✦ ${p}</button></div></div>`;
 }
 
@@ -183,6 +187,20 @@ function showBackups() {
   openModal({title:"Backups", html, yes:null, no:"Close"});
 }
 
+/* ---------- Sea chart (travel between harbors) ---------- */
+function showChart() {
+  const rows = Object.entries(HARBORS).map(([id,h]) => {
+    const here = id === S.harbor, open = isUnlocked(id), left = h.need - S.relights;
+    const btn = here ? `<span class="here">You are here</span>` : open ? `<button class="buy glass" data-travel="${id}">Sail here</button>` : `<span class="locked">Relight ${left} more time${left>1?"s":""}</span>`;
+    return `<span class="harbor ${here?"current":""} ${open?"":"locked-h"}"><span class="hh"><b>${h.name}</b>${btn}</span>
+      <small>${open ? h.blurb : "Uncharted waters."}</small>
+      ${open ? `<span class="rules">${h.rules.map(r=>`<i>${r}</i>`).join("")}</span>${!here&&harborRun(id)?`<small>Light this run here: ☀ ${fmt(harborRun(id))}</small>`:""}` : ""}</span>`;
+  }).join("");
+  openModal({title:"Sea chart", html:`Each harbor keeps its own light and upgrades. Gems, lumens, research, keepers and achievements go with you. Only the harbor you're at earns light.<br>
+    <b>Harbor network:</b> +${Math.round(NETWORK_BONUS*100)}% to all light for each harbor discovered (now ×${networkMult().toFixed(1)}).
+    <span class="chart">${rows}</span>`, yes:null, no:"Close"});
+}
+
 /* ---------- Settings ---------- */
 const check = k => `<input type="checkbox" data-set="${k}" ${settings[k]?"checked":""}>`;
 const slider = k => `<input type="range" min="0" max="1" step="0.05" data-set="${k}" value="${settings[k]}">`;
@@ -226,7 +244,9 @@ function onClick(e) {
   if(d.ach){const a=ACH.find(x=>x.id===d.ach);if(a&&!S.ach.includes(a.id)&&a.cur(S)>=a.goal){S.ach.push(a.id);S.gems+=a.gems;sfx("chime");toast(`${a.name}: ◆ ${a.gems}`);renderGoals();save()}}
   if("relight" in d){const p=pendingLumens();if(p<1)return;
     openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, keepers, and purchases stay.`,yes:"Relight",cls:"glass",cb:()=>{
-      S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};sfx("relight");toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);renderAll();save()}})}
+      const had=unlockedCount();S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};sfx("relight");toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);
+      if(unlockedCount()>had){const id=newHarbors()[0];if(id)setTimeout(()=>{toast(`New harbor discovered: ${HARBORS[id].name}! Open the sea chart to sail there.`,5000);sfx("chime")},2600)}
+      renderAll();save()}})}
   if(d.pack){const p=PACKS.find(x=>x.id===d.pack);
     openModal({title:p.name,body:p.desc||`Adds ${p.gems} gems to your account.`,price:"$"+p.usd.toFixed(2),note:true,yes:"Buy",cb:()=>{
       S.gems+=p.gems;S.spent+=p.usd;sfx("gold");S.purchases.push({name:p.name,usd:p.usd,t:Date.now()});
@@ -241,6 +261,8 @@ function onClick(e) {
     if(!S.colors.includes(c.id)){if(S.gems<c.cost)return;S.gems-=c.cost;S.colors.push(c.id)}
     S.color=c.id;sfx("buy");renderShop();save()}
   if("settings" in d)showSettings();
+  if("chart" in d)showChart();
+  if(d.travel){closeModal();if(travelTo(d.travel)){sfx("chime");toast(`You sail to ${HARBORS[d.travel].name}.`);document.body.dataset.harbor=S.harbor;renderAll();save()}}
   if("sound" in d)setSetting("sound",!settings.sound);
   if("export" in d)exportSave();
   if("import" in d)importSave();

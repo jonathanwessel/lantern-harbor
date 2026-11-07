@@ -137,3 +137,21 @@ canvas{display:block;width:100%;max-width:100%;height:auto;cursor:pointer;touch-
 .perk{color:var(--mute);font-size:12px} .perk.on{color:var(--lamp-soft)}
 .post-sel{font:600 13px var(--mono);background:var(--sea);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;max-width:170px}
 @media (max-width:460px){.posts{grid-template-columns:1fr}.post-sel{max-width:130px}}
+
+/* ---------- v0.7 ---------- */
+body[data-harbor="fjord"]{--sea:#08131d;--sea-2:#0f2030;--sea-3:#183044;--line:#243f56}
+body[data-harbor="reef"]{--sea:#07202a;--sea-2:#0c2c38;--sea-3:#143e4c;--line:#1d5161}
+.harbor-chip{position:relative;cursor:pointer;color:var(--ink);font:inherit;font-size:14px}
+.harbor-chip b{color:var(--glass)}
+.harbor-chip .dot{top:2px;right:2px}
+.chart{display:grid;gap:8px;margin-top:12px}
+.harbor{display:grid;gap:4px;background:var(--sea);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.harbor.current{border-color:var(--glass)}
+.harbor.locked-h{opacity:.6}
+.hh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hh b{color:var(--ink);font-size:15px}
+.harbor small{color:var(--mute)}
+.rules{display:flex;flex-wrap:wrap;gap:4px}
+.rules i{font:400 11px var(--mono);font-style:normal;background:var(--sea-3);color:var(--lamp-soft);border-radius:6px;padding:2px 6px}
+.here{font:600 12px var(--mono);color:var(--glass)} .locked{font:400 12px var(--mono);color:var(--mute)}
+.discover{color:var(--lamp-soft)!important}

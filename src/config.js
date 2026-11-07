@@ -147,3 +147,25 @@ ACH.push(
   {id:"crew4",name:"Full Watch",desc:"Staff all four posts",gems:15,cur:S=>new Set(S.keepers.filter(k=>k.post).map(k=>k.post)).size,goal:4},
   {id:"keeper10",name:"Seasoned Keeper",desc:"Train a keeper to level 10",gems:25,cur:S=>Math.max(0,...S.keepers.map(k=>keeperLevel(k.xp))),goal:10},
 );
+
+/* ---------- New Shores: harbors ----------
+ * need = relights required to discover it. cycle = day/night phase points (dawn starts, day starts,
+ * dusk starts). mods multiply tap light, light per second, guided-ship light, bird and golden-ship rates. */
+export const HARBORS = {
+  lantern:{name:"Lantern Harbor",need:0,blurb:"A sheltered harbor on a temperate coast, where it all began.",
+    cycle:{dawn:.55,day:.65,dusk:.9}, mods:{tap:1,sec:1,ship:1,birds:1,gold:1},
+    weather:{fog:"Fog",storm:"Storm"}, rules:["Balanced nights and days","No modifiers"]},
+  fjord:{name:"Frostwatch Fjord",need:2,blurb:"Steep peaks, drifting ice and long polar nights under the aurora.",
+    cycle:{dawn:.7,day:.78,dusk:.93}, mods:{tap:1,sec:.8,ship:2,birds:.6,gold:1},
+    weather:{fog:"Blizzard",storm:"Polar gale"}, rules:["Long nights (ships ×2 at night)","Guided ships pay ×2","Light per second ×0.8","Fewer birds"]},
+  reef:{name:"Sunreef Atoll",need:5,blurb:"Turquoise shallows, palms and long sunny days broken by sudden squalls.",
+    cycle:{dawn:.35,day:.42,dusk:.9}, mods:{tap:1,sec:1.25,ship:.8,birds:2,gold:1.5},
+    weather:{fog:"Sea mist",storm:"Squall"}, rules:["Long days (birds ×2 by day)","Light per second ×1.25","Birds twice as common","Golden ships 50% more often","Guided ships pay ×0.8"]},
+};
+/** Each harbor you discover adds this much to all light, everywhere. */
+export const NETWORK_BONUS = .1;
+
+ACH.push(
+  {id:"fjord",name:"Northern Lights",desc:"Visit Frostwatch Fjord",gems:20,cur:S=>S.visited.includes("fjord")?1:0,goal:1},
+  {id:"reef",name:"Island Time",desc:"Visit Sunreef Atoll",gems:25,cur:S=>S.visited.includes("reef")?1:0,goal:1},
+);

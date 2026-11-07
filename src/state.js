@@ -25,6 +25,8 @@ export const defaults = () => ({
   contracts:[], contractsDone:0, bestCombo:0, shipsBy:{}, playTime:0,
   // v0.6
   keepers:[], candidates:[],
+  // v0.7: active harbor, parked progress of the others, harbors visited
+  harbor:"lantern", harbors:{}, visited:["lantern"],
 });
 
 /** The live game state. Other modules import this binding and mutate its fields. */
@@ -34,8 +36,12 @@ export let S = defaults();
 export const lvl = id => S.research[id]||0;
 
 /** Merge a stored save over defaults, migrating v1 (unversioned) saves. */
+const KNOWN_HARBORS = ["lantern","fjord","reef"];
+
 export function hydrate(s) {
   const out = {...defaults(), ...s};
+  if (!KNOWN_HARBORS.includes(out.harbor)) out.harbor = "lantern";
+  if (!out.visited.includes(out.harbor)) out.visited = [...out.visited, out.harbor];
   if (!s.v) { out.v = SAVE_VERSION; out.lifetime = Math.max(out.coins, out.ships*10); out.run = out.lifetime; }
   return out;
 }

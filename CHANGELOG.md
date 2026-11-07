@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.7.0 — New Shores
+
+**New**
+- **Two new harbors** with their own look, day length and rules:
+  - **Frostwatch Fjord** (discovered after 2 relights): snow-capped peaks, drifting ice floes,
+    falling snow, a black-and-white tower and the northern lights at night. Long polar nights,
+    guided ships pay ×2, light per second ×0.8, fewer birds. Weather: blizzards and polar gales.
+  - **Sunreef Atoll** (after 5 relights): turquoise shallows, coral, palm islands and a
+    teal-striped tower. Long sunny days, light per second ×1.25, birds twice as common, golden
+    ships 50% more often, guided ships pay ×0.8. Weather: sea mist and squalls.
+- **Sea chart**: tap the ⚓ harbor button by your wallet to see every harbor and sail between them.
+- **Each harbor keeps its own light, upgrades and run.** Gems, lumens, research, keepers,
+  achievements and cosmetics are shared. Only the harbor you're at earns light. Relighting resets
+  just the harbor you're in.
+- **Harbor network**: +10% to all light everywhere for each harbor you discover.
+- The page takes on each harbor's colors.
+- 2 new achievements: Northern Lights, Island Time.
+
+**Your save**: existing progress becomes Lantern Harbor's progress. Nothing moves or resets.
+
 ## v0.6.0 — Keepers
 
 **New**

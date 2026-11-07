@@ -2,7 +2,8 @@
 import { ACH } from "./config.js";
 import { S, load, save, lvl, whenLocked } from "./state.js";
 import { boosted, frenzy, perTap, perSec, earn, pendingLumens, dailyReady, unclaimed, offlineCapH, goldChance } from "./economy.js";
-import { tickWeather, weather, isDay, isNight, timeName, stormy, foggy, daylight } from "./world.js";
+import { tickWeather, weather, isDay, isNight, timeName, stormy, foggy, daylight, weatherName, mods, harbor } from "./world.js";
+import { newHarbors } from "./harbors.js";
 import { fmt, $ } from "./util.js";
 import { openModal, initDialogs, toast } from "./ui/dialogs.js";
 import { tab, renderAll, renderRelight, renderGoals, refreshUp, refreshResearch, researchReady, checkLab, initPanels } from "./ui/panels.js";
@@ -21,19 +22,19 @@ function conditions(){
   const parts=[timeName()];
   if(isNight())parts.push("ships ×2");
   if(isDay())parts.push("birds ×2");
-  if(weather.kind==="fog")parts.push("Fog: ships ×"+(3+.5*lvl("signals")));
-  if(weather.kind==="storm")parts.push("Storm: taps ×2, ships ×"+(2+.5*lvl("signals")));
+  if(weather.kind==="fog")parts.push(weatherName()+": ships ×"+(3+.5*lvl("signals")));
+  if(weather.kind==="storm")parts.push(weatherName()+": taps ×2, ships ×"+(2+.5*lvl("signals")));
   return parts.join(" · ");
 }
 
 function everySecond(){
   if(!hasGold()&&Math.random()<goldChance())spawnGold();
   // birds: gulls are common (twice as common by day), albatrosses are rare, storm petrels only fly in storms
-  if(birdCount()<3){const b=(1+.3*lvl("birds"))*lookMult();
+  if(birdCount()<3){const b=(1+.3*lvl("birds"))*lookMult()*mods().birds;
     if(Math.random()<b*(isDay()?2:1)/30)spawnBird("gull");
     else if(Math.random()<b/300)spawnBird("albatross");
     else if(stormy()&&Math.random()<b/25)spawnBird("petrel")}
-  if(tickWeather())toast(weather.kind==="fog"?"Fog rolls in. Guided ships pay extra.":weather.kind==="storm"?"A storm! Taps and ships pay extra.":"The weather clears.");
+  if(tickWeather())toast(weather.kind==="fog"?`${weatherName()} rolls in. Guided ships pay extra.`:weather.kind==="storm"?`${weatherName()}! Taps and ships pay extra.`:"The weather clears.");
   checkLab();
   const ups=addXp(1);ups.forEach(k=>{toast(`${k.name} is now level ${Math.min(10,1+Math.floor(Math.sqrt(k.xp/120)))}`);sfx("chime")});
   if(ups.length&&tab==="keepers")renderKeepers();
@@ -51,7 +52,9 @@ function loop(t){
     $("lchip").hidden=!S.lumens;$("lumens").textContent=S.lumens;
     const b=$("boost");if(boosted()){b.hidden=false;b.textContent=`2x · ${clock(S.boostUntil-Date.now())}`}else b.hidden=true;
     const f=$("frenzy");if(frenzy()){f.hidden=false;f.textContent=`Tailwind ×5 taps · ${clock(S.frenzyUntil-Date.now())}`}else f.hidden=true;
-    const w=$("wx");if(weather.kind!=="clear"){w.hidden=false;w.textContent=`${weather.kind==="fog"?"Fog":"Storm"} · ${clock(weather.until-Date.now())}`;w.className="badge "+weather.kind}else w.hidden=true;
+    const w=$("wx");if(weather.kind!=="clear"){w.hidden=false;w.textContent=`${weatherName()} · ${clock(weather.until-Date.now())}`;w.className="badge "+weather.kind}else w.hidden=true;
+    if(document.body.dataset.harbor!==S.harbor)document.body.dataset.harbor=S.harbor;
+    $("hname").textContent=harbor().name;$("hdot").hidden=!newHarbors().length;
     const c=comboState(),cb=$("combo");if(c.n>=2){cb.hidden=false;cb.textContent=`Combo ${c.n} · ×${c.mult.toFixed(1)}`}else cb.hidden=true;
     $("goldb").hidden=!hasGold();
     ambience({fog:foggy()?1:0, storm:stormy()?1:0, day:daylight(), bell:!!S.owned.bell});

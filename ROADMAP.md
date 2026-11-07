@@ -12,15 +12,20 @@ must load every older save without losing anything.
 - **v0.5.0** Sound & Feel: synthesized ambience and effects, Settings, vibration, reduce motion,
   number formats, gem balance pass.
 - **v0.6.0** Keepers: hire, assign to four posts, level up, traits with home-post perks.
+- **v0.7.0** New Shores: Frostwatch Fjord and Sunreef Atoll, sea chart travel, per-harbor
+  progress, harbor network bonus.
 
 ## Next
 
-### v0.7 — New Shores (new theme)
-- After a few relights, unlock a second harbor with its own look and rules: an Arctic fjord
-  (northern lights, ice floes) or a tropical reef (coral, sudden squalls). Progress per harbor plus
-  shared lumens.
+### v0.8 — Flares & Raiders
+- Skua raids: dark pirate seabirds swoop in and steal light while they're on screen.
+- Flare Gun: tap a raider to fire a signal flare from the lantern gallery; a hit pays a bounty.
+  Limited shots that reload, so aiming matters.
+- Flare Battery research (more shots, faster reload) and a Sharpshooter keeper trait that
+  shoots raiders automatically.
+- Friendly birds (gulls, albatrosses, petrels) keep working as they do now.
 
-### v0.8 — Seasons
+### v0.9 — Seasons
 - A rotating season every week (autumn gales, winter ice, spring migration) with its own visuals,
   modifiers and achievements.
 

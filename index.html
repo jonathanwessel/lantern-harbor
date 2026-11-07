@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body data-harbor="lantern">
 <div class="wrap">
   <div class="update" id="update" hidden>Version <b id="upd-v"></b> is ready. <button class="buy glass" id="upd-go">Reload</button><small>Your progress is saved first.</small></div>
   <div class="test">Test mode: purchases are simulated, no money changes hands</div>
@@ -18,6 +18,7 @@
       <div class="chip">☀ <b id="coins">0</b> light</div>
       <div class="chip g">◆ <b id="gems">0</b> gems</div>
       <div class="chip l" id="lchip" hidden>✦ <b id="lumens">0</b> lumens</div>
+      <button class="chip harbor-chip" data-chart aria-label="Open the sea chart">⚓ <b id="hname">Lantern Harbor</b><i class="dot" id="hdot" hidden></i></button>
     </div>
   </header>
 
