@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.5.0 — Sound & Feel
+
+**New**
+- **Sound.** Everything is synthesized live, with no audio files:
+  - Ambience: rolling waves, wind, rain in storms, a distant foghorn in fog, and your Fog Bell
+    tolling once you own one.
+  - Effects: lamp taps, a chime for every guided ship that climbs a musical scale as your combo
+    grows, an eerie tone for ghost ships, a sparkle for golden ships, bird chirps and gull cries,
+    thunder after lightning, and chimes for research, contracts, achievements and relights.
+  - Sound starts after your first tap (a browser rule) and pauses when the tab is hidden.
+- **Settings** (button under the panels): sound on/off, ambience and effects volume, vibration on
+  phones, reduce motion (fewer particles, no lightning flash), and number format
+  (1.23M, 1.23e6, or 1,234,567). Settings stay on this device and aren't part of Export save.
+- A **Sound on/off** quick toggle next to Settings.
+- **Vibration** on phones when you guide ships and catch birds or golden ships.
+
+**Balance**
+- Gems were coming in faster than the Gem Shop expects, mostly from contracts and storms:
+  - Harbor Contract gem rewards are roughly halved (2–4 gems each, still plus light).
+    Contracts you already have keep their current reward.
+  - Storm petrels are about half as common and give 1 gem (was 2).
+
 ## v0.4.0 — Fleet & Contracts
 
 **New**

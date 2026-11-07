@@ -6,6 +6,8 @@ import { tier, perTap, perSec, earn, costN, qtyFor, pendingLumens, perLumen, tod
   researchCost, researchMs, labLeft, rushCost } from "../economy.js";
 import { fmt, $ } from "../util.js";
 import { toast, openModal, closeModal, copyText } from "./dialogs.js";
+import { sfx } from "../audio.js";
+import { settings, setSetting, onSettings } from "../settings.js";
 
 /** Currently selected tab id. */
 export let tab = "up";
@@ -71,7 +73,7 @@ export function checkLab() {
   if (!S.lab || Date.now() < S.lab.until) return false;
   const r = RESEARCH.find(x=>x.id===S.lab.id);
   S.lab = null;
-  if (r) { S.research[r.id] = Math.min(r.max, lvl(r.id)+1); toast(`Research complete: ${r.name} Lv ${lvl(r.id)}`); }
+  if (r) { S.research[r.id] = Math.min(r.max, lvl(r.id)+1); sfx("chime"); toast(`Research complete: ${r.name} Lv ${lvl(r.id)}`); }
   if (tab==="research") renderResearch();
   save();
   return true;
@@ -180,35 +182,63 @@ function showBackups() {
   openModal({title:"Backups", html, yes:null, no:"Close"});
 }
 
+/* ---------- Settings ---------- */
+const check = k => `<input type="checkbox" data-set="${k}" ${settings[k]?"checked":""}>`;
+const slider = k => `<input type="range" min="0" max="1" step="0.05" data-set="${k}" value="${settings[k]}">`;
+
+function showSettings() {
+  const nums = [["short","1.23M"],["sci","1.23e6"],["full","1,234,567"]].map(([v,l])=>`<option value="${v}" ${settings.numbers===v?"selected":""}>${l}</option>`).join("");
+  const html = `<span class="settings">
+    <label class="set"><span>Sound</span>${check("sound")}</label>
+    <label class="set"><span>Ambience <small>waves, wind, foghorn</small></span>${slider("ambience")}</label>
+    <label class="set"><span>Effects <small>taps, ships, birds</small></span>${slider("effects")}</label>
+    <label class="set"><span>Vibration <small>phones only</small></span>${check("haptics")}</label>
+    <label class="set"><span>Reduce motion <small>fewer particles, no lightning flash</small></span>${check("reduceMotion")}</label>
+    <label class="set"><span>Numbers</span><select data-set="numbers">${nums}</select></label>
+    <small class="set-note">Settings are saved on this device and aren't included in Export save.</small></span>`;
+  openModal({title:"Settings", html, yes:null, no:"Done"});
+}
+
+function onSetting(e) {
+  const el = e.target.closest("[data-set]"); if (!el) return;
+  const k = el.dataset.set, v = el.type === "checkbox" ? el.checked : el.type === "range" ? +el.value : el.value;
+  setSetting(k, v);
+  if (k === "effects") sfx("tap");
+}
+
+const soundLabel = () => { const b = document.querySelector("[data-sound]"); if (b) { b.textContent = settings.sound ? "Sound on" : "Sound off"; b.setAttribute("aria-pressed", settings.sound); } };
+
 function onClick(e) {
   const b=e.target.closest("button");if(!b||b.disabled)return;const d=b.dataset;
   if(d.qty){S.buyQty=d.qty==="max"?"max":+d.qty;renderUp();save()}
-  if(d.up){const u=UPGRADES.find(x=>x.id===d.up),n=qtyFor(u),c=costN(u,n);if(S.coins>=c){S.coins-=c;S.owned[u.id]=(S.owned[u.id]||0)+n;renderUp();save()}}
+  if(d.up){const u=UPGRADES.find(x=>x.id===d.up),n=qtyFor(u),c=costN(u,n);if(S.coins>=c){S.coins-=c;S.owned[u.id]=(S.owned[u.id]||0)+n;sfx("buy");renderUp();save()}}
   if(d.res){const r=RESEARCH.find(x=>x.id===d.res),c=researchCost(r);
-    if(!S.lab&&unlocked(r)&&!maxed(r)&&S.coins>=c){S.coins-=c;const ms=researchMs(r);S.lab={id:r.id,until:Date.now()+ms,ms};renderResearch();save()}}
+    if(!S.lab&&unlocked(r)&&!maxed(r)&&S.coins>=c){S.coins-=c;const ms=researchMs(r);S.lab={id:r.id,until:Date.now()+ms,ms};sfx("buy");renderResearch();save()}}
   if("rush" in d&&S.lab){const c=rushCost();if(S.gems>=c){S.gems-=c;S.lab.until=Date.now();checkLab()}}
   if("daily" in d&&dailyReady()){const streak=S.daily.last===yesterday()?S.daily.streak+1:1;const g=DAILY[(streak-1)%7];
-    S.daily={last:today(),streak};S.gems+=g;toast(`Day ${streak} ration: ◆ ${g}`);renderGoals();save()}
-  if(d.claim){const i=+d.claim,c=S.contracts[i];if(c&&isDone(c)){const l=contractLight();S.gems+=c.gems;earn(l);S.contractsDone++;
+    S.daily={last:today(),streak};S.gems+=g;sfx("chime");toast(`Day ${streak} ration: ◆ ${g}`);renderGoals();save()}
+  if(d.claim){const i=+d.claim,c=S.contracts[i];if(c&&isDone(c)){const l=contractLight();S.gems+=c.gems;earn(l);S.contractsDone++;sfx("chime");
     toast(`Contract done: ◆ ${c.gems} + ☀ ${fmt(l)}`);replaceContract(i);renderGoals();save()}}
   if(d.swap){const i=+d.swap;if(S.contracts[i]&&S.gems>=SWAP_COST){S.gems-=SWAP_COST;replaceContract(i);renderGoals();save()}}
-  if(d.ach){const a=ACH.find(x=>x.id===d.ach);if(a&&!S.ach.includes(a.id)&&a.cur(S)>=a.goal){S.ach.push(a.id);S.gems+=a.gems;toast(`${a.name}: ◆ ${a.gems}`);renderGoals();save()}}
+  if(d.ach){const a=ACH.find(x=>x.id===d.ach);if(a&&!S.ach.includes(a.id)&&a.cur(S)>=a.goal){S.ach.push(a.id);S.gems+=a.gems;sfx("chime");toast(`${a.name}: ◆ ${a.gems}`);renderGoals();save()}}
   if("relight" in d){const p=pendingLumens();if(p<1)return;
     openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, and purchases stay.`,yes:"Relight",cls:"glass",cb:()=>{
-      S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);renderAll();save()}})}
+      S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};sfx("relight");toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);renderAll();save()}})}
   if(d.pack){const p=PACKS.find(x=>x.id===d.pack);
     openModal({title:p.name,body:p.desc||`Adds ${p.gems} gems to your account.`,price:"$"+p.usd.toFixed(2),note:true,yes:"Buy",cb:()=>{
-      S.gems+=p.gems;S.spent+=p.usd;S.purchases.push({name:p.name,usd:p.usd,t:Date.now()});
+      S.gems+=p.gems;S.spent+=p.usd;sfx("gold");S.purchases.push({name:p.name,usd:p.usd,t:Date.now()});
       if(p.once){S.starter=true;S.perm=1.5;if(!S.colors.includes("sea"))S.colors.push("sea");S.color="sea"}
       toast(`Purchased ${p.name} (test)`);renderAll();save()}})}
-  if(d.gb){const g=GEMBUYS.find(x=>x.id===d.gb);if(S.gems<g.cost)return;S.gems-=g.cost;
+  if(d.gb){const g=GEMBUYS.find(x=>x.id===d.gb);if(S.gems<g.cost)return;S.gems-=g.cost;sfx("buy");
     if(g.id==="boost"){S.boostUntil=Math.max(Date.now(),S.boostUntil)+600000;toast("Surge active: 2x light")}
     if(g.id==="skip"){const amt=perSec()*7200||perTap()*500;earn(amt);toast("Collected ☀ "+fmt(amt))}
     if(g.id==="charter"){S.charter=true;toast("Golden Charter signed")}
     renderShop();save()}
   if(d.col){const c=COLORS.find(x=>x.id===d.col);
     if(!S.colors.includes(c.id)){if(S.gems<c.cost)return;S.gems-=c.cost;S.colors.push(c.id)}
-    S.color=c.id;renderShop();save()}
+    S.color=c.id;sfx("buy");renderShop();save()}
+  if("settings" in d)showSettings();
+  if("sound" in d)setSetting("sound",!settings.sound);
   if("export" in d)exportSave();
   if("import" in d)importSave();
   if("backups" in d)showBackups();
@@ -222,4 +252,8 @@ export function initPanels() {
     document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));
     Object.keys(RENDER).forEach(k=>$("p-"+k).hidden=k!==tab);renderAll()});
   document.addEventListener("click", onClick);
+  document.addEventListener("input", onSetting);
+  document.addEventListener("change", onSetting);
+  onSettings(k => { if (k === "sound") soundLabel(); if (k === "numbers") renderAll(); });
+  soundLabel();
 }

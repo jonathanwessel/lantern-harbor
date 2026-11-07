@@ -2,12 +2,13 @@
 import { ACH } from "./config.js";
 import { S, load, save, lvl, whenLocked } from "./state.js";
 import { boosted, frenzy, perTap, perSec, earn, pendingLumens, dailyReady, unclaimed, offlineCapH, goldChance } from "./economy.js";
-import { tickWeather, weather, isDay, isNight, timeName, stormy } from "./world.js";
+import { tickWeather, weather, isDay, isNight, timeName, stormy, foggy, daylight } from "./world.js";
 import { fmt, $ } from "./util.js";
 import { openModal, initDialogs, toast } from "./ui/dialogs.js";
 import { tab, renderAll, renderRelight, renderGoals, refreshUp, refreshResearch, researchReady, checkLab, initPanels } from "./ui/panels.js";
 import { draw, hasGold, spawnGold, spawnBird, birdCount, comboState, initScene } from "./scene.js";
 import { ensureContracts, contractsReady } from "./contracts.js";
+import { unlock, ambience } from "./audio.js";
 
 const VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
 
@@ -29,7 +30,7 @@ function everySecond(){
   if(birdCount()<3){const b=1+.3*lvl("birds");
     if(Math.random()<b*(isDay()?2:1)/30)spawnBird("gull");
     else if(Math.random()<b/300)spawnBird("albatross");
-    else if(stormy()&&Math.random()<b/12)spawnBird("petrel")}
+    else if(stormy()&&Math.random()<b/25)spawnBird("petrel")}
   if(tickWeather())toast(weather.kind==="fog"?"Fog rolls in. Guided ships pay extra.":weather.kind==="storm"?"A storm! Taps and ships pay extra.":"The weather clears.");
   checkLab();
   if(tab==="relight"){const p=pendingLumens();if(p!==lastP){lastP=p;renderRelight()}else if($("r-run"))$("r-run").textContent=fmt(S.run)}
@@ -49,6 +50,7 @@ function loop(t){
     const w=$("wx");if(weather.kind!=="clear"){w.hidden=false;w.textContent=`${weather.kind==="fog"?"Fog":"Storm"} · ${clock(weather.until-Date.now())}`;w.className="badge "+weather.kind}else w.hidden=true;
     const c=comboState(),cb=$("combo");if(c.n>=2){cb.hidden=false;cb.textContent=`Combo ${c.n} · ×${c.mult.toFixed(1)}`}else cb.hidden=true;
     $("goldb").hidden=!hasGold();
+    ambience({fog:foggy()?1:0, storm:stormy()?1:0, day:daylight(), bell:!!S.owned.bell});
     $("gdot").hidden=!(dailyReady()||unclaimed().length||contractsReady());$("rdot").hidden=pendingLumens()<1;$("resdot").hidden=!researchReady();
     if(tab==="up")refreshUp();
     if(tab==="research")refreshResearch();
@@ -83,6 +85,10 @@ welcomeBack();
 whenLocked(()=>openModal({title:"Open in another tab",body:"Lantern Harbor was saved from another tab or window, so this one has paused saving to protect your progress. Reload to continue here with the latest save.",yes:"Reload",no:null,cls:"glass",cb:()=>location.reload()}));
 $("ver").textContent="v"+VERSION;
 watchForUpdates();
+
+/* Browsers only allow sound after a tap or key press. */
+addEventListener("pointerdown", unlock, {capture:true});
+addEventListener("keydown", unlock, {capture:true});
 
 setInterval(save,5000);
 addEventListener("pagehide",save);

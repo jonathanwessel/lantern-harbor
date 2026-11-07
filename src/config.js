@@ -98,15 +98,15 @@ export const SHIPS = {
 
 /* Harbor Contracts: short rotating goals. `goal` is a [min,max] range; `round` snaps the target. */
 export const CONTRACTS = [
-  {kind:"ship",text:n=>`Guide ${n} ships`,goal:[15,40],gems:5},
-  {kind:"night",text:n=>`Guide ${n} ships at night`,goal:[8,20],gems:6},
-  {kind:"weather",text:n=>`Guide ${n} ships through fog or storm`,goal:[4,10],gems:8},
-  {kind:"bird",text:n=>`Catch ${n} birds`,goal:[3,8],gems:6},
-  {kind:"gold",text:n=>`Catch ${n} golden ship${n>1?"s":""}`,goal:[1,2],gems:8},
-  {kind:"tap",text:n=>`Tap the lamp ${n} times`,goal:[150,400],round:50,gems:4},
-  {kind:"combo",text:n=>`Reach a ${n}-ship guiding combo`,goal:[4,9],gems:7,max:true},
-  {kind:"freighter",text:n=>`Guide ${n} freighter${n>1?"s":""}`,goal:[2,4],gems:6},
-  {kind:"clipper",text:n=>`Guide ${n} clipper${n>1?"s":""} before they slip away`,goal:[2,5],gems:6},
+  {kind:"ship",text:n=>`Guide ${n} ships`,goal:[15,40],gems:3},
+  {kind:"night",text:n=>`Guide ${n} ships at night`,goal:[8,20],gems:3},
+  {kind:"weather",text:n=>`Guide ${n} ships through fog or storm`,goal:[4,10],gems:4},
+  {kind:"bird",text:n=>`Catch ${n} birds`,goal:[3,8],gems:3},
+  {kind:"gold",text:n=>`Catch ${n} golden ship${n>1?"s":""}`,goal:[1,2],gems:4},
+  {kind:"tap",text:n=>`Tap the lamp ${n} times`,goal:[150,400],round:50,gems:2},
+  {kind:"combo",text:n=>`Reach a ${n}-ship guiding combo`,goal:[4,9],gems:4,max:true},
+  {kind:"freighter",text:n=>`Guide ${n} freighter${n>1?"s":""}`,goal:[2,4],gems:3},
+  {kind:"clipper",text:n=>`Guide ${n} clipper${n>1?"s":""} before they slip away`,goal:[2,5],gems:3},
 ];
 
 ACH.push(

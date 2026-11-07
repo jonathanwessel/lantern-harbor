@@ -47,6 +47,9 @@ reloads on your click, saving first.
 | `src/state.js` | Save state, load/save, backups, export/import |
 | `src/economy.js` | Income, costs, multipliers, prestige, research math |
 | `src/world.js` | Day/night cycle and weather |
+| `src/contracts.js` | Harbor Contracts |
+| `src/audio.js` | Synthesized ambience and sound effects (Web Audio) |
+| `src/settings.js` | Device settings (`lh-settings`, separate from the save) |
 | `src/scene.js` | Canvas harbor scene and tap handling |
 | `src/ui/panels.js` | Tab panels and button actions |
 | `src/ui/dialogs.js` | Modal and toast |

@@ -14,6 +14,8 @@ import { S, lvl } from "./state.js";
 import { perTap, earn, shipBonus, goldReward, gullReward, autoCooldown, lureDelay, lureMult, COMBO_WINDOW, comboMult, maxShips } from "./economy.js";
 import { daylight, dayPhase, foggy, stormy, badWeather, isNight } from "./world.js";
 import { fmt, $ } from "./util.js";
+import { sfx } from "./audio.js";
+import { settings, buzz } from "./settings.js";
 
 export const W = 680, H = 300;
 const LX = 340, LY = 67, SEA = 190, REACH = 480;
@@ -50,6 +52,7 @@ export const birdCount = () => birds.length;
 export function spawnBird(kind){
   const b = BIRDS[kind], dir = Math.random()<.5?1:-1;
   birds.push({kind, dir, x:dir>0?-30:W+30, y:30+Math.random()*110, v:b.v*(.85+Math.random()*.3), p:Math.random()*6, age:0});
+  if (kind === "gull" && Math.random() < .6) sfx("gull");
 }
 
 /* ---------- Guiding combo ---------- */
@@ -63,7 +66,7 @@ const shipScale = s => .8+(s.y-205)/50*.4;
 const shipHit = (s,px,py) => { const k=shipScale(s); return Math.abs(px-s.x)<30*k && py>s.y-30*k && py<s.y+14*k; };
 const onScreen = s => !s.lit && s.x>0 && s.x<W;
 
-function burst(x, y, color, n=10){ for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=1+Math.random()*2;sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,a:1,c:color})} }
+function burst(x, y, color, n=10){ if(settings.reduceMotion)n=Math.ceil(n/3); for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=1+Math.random()*2;sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,a:1,c:color})} }
 
 function guide(s, auto){
   s.lit = true;
@@ -74,6 +77,8 @@ function guide(s, auto){
   track("ship"); track(s.type); if (isNight()) track("night");
   if (badWeather()) { S.weatherShips++; track("weather"); }
   if (s.type === "ghost") S.gems += 1;
+  if (s.type === "ghost") sfx("ghost"); else if (auto) sfx("autoGuide"); else sfx("guide", combo);
+  if (!auto) buzz(8);
   const label = ["freighter","clipper","ghost"].includes(s.type) ? cls.name+" " : "";
   floats.push({x:s.x,y:s.y-24,a:1.1,t:label+(auto?"⚙ +":"⚓ +")+fmt(bonus)+(s.type==="ghost"?" +◆1":""),c:s.type==="ghost"?"#bfe9e3":undefined});
   if (!auto && combo >= 2) floats.push({x:s.x,y:s.y-42,a:1,t:`Combo ×${comboMult(combo).toFixed(1)}`,c:"#5fd3c4"});
@@ -85,21 +90,22 @@ function catchBird(b, auto=false){
   const info = BIRDS[b.kind], r = gullReward()*(b.kind==="albatross"?2:1)*(auto?lureMult():1); earn(r);
   if (b.kind==="albatross") { S.albatross++; S.frenzyUntil = Math.max(Date.now(),S.frenzyUntil)+15000;
     floats.push({x:b.x,y:b.y-26,a:1.5,t:"Tailwind! taps ×5",c:"#fff6c7"}); }
-  if (b.kind==="petrel") { S.gems += 2; floats.push({x:b.x,y:b.y-26,a:1.3,t:"+◆2",c:"#b98cff"}); }
+  if (b.kind==="petrel") { S.gems += 1; floats.push({x:b.x,y:b.y-26,a:1.3,t:"+◆1",c:"#b98cff"}); }
+  sfx("bird"); if (!auto) buzz([10,30,10]);
   floats.push({x:b.x,y:b.y-8,a:1.2,t:"✧ +"+fmt(r),c:info.color});
   burst(b.x, b.y, info.color, 14);
 }
 
 function tap(px,py){
   if(gold&&px!=null&&Math.hypot(px-gold.x,py-(gold.y-6))<40){
-    const r=goldReward();earn(r);S.gems+=1;S.golden++;track("gold");
+    const r=goldReward();earn(r);S.gems+=1;S.golden++;track("gold");sfx("gold");buzz([15,40,15]);
     floats.push({x:gold.x,y:gold.y-24,a:1.3,t:"★ +"+fmt(r)+" +◆1",c:"#ffd84a"});burst(gold.x,gold.y-6,"#ffd84a",18);gold=null;flash=1;return}
   if(px!=null){const b=birds.find(b=>birdHit(b,px,py));if(b){catchBird(b);return}}
   const g=perTap();earn(g);S.taps++;track("tap");flash=1;
   floats.push({x:330+Math.random()*40-20,y:52,a:1,t:"+"+fmt(g)});
   // Tap a ship to guide that one; otherwise the beam picks the first unguided ship in view.
   const s=(px!=null&&ships.find(s=>onScreen(s)&&shipHit(s,px,py)))||ships.find(onScreen);
-  if(s){guide(s,false);beamP=Math.acos(Math.max(-1,Math.min(1,(s.x-LX)/REACH)))}else spin+=3;
+  if(s){guide(s,false);beamP=Math.acos(Math.max(-1,Math.min(1,(s.x-LX)/REACH)))}else{spin+=3;sfx("tap");buzz(5)}
 }
 
 export function initScene(){
@@ -294,9 +300,9 @@ function drawWeather(d,t,k){
     ctx.fillStyle=rgba(d>.5?"#dfe8ee":"#7f93a5",.18*fogF);ctx.fillRect(0,120,W,H-120)}
   if(stormF>.01){
     ctx.strokeStyle=rgba("#a9c1d6",.35*stormF);ctx.lineWidth=1;ctx.beginPath();
-    drops.forEach(p=>{p.y+=p.v*k;p.x-=p.v*.35*k;if(p.y>H){p.y=-10;p.x=Math.random()*(W+60)}ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+3,p.y-9)});ctx.stroke();
-    if(stormy()&&Math.random()<.004*k){lightning=1;let x=60+Math.random()*560,y=0;bolt=[[x,y]];while(y<SEA-20){y+=12+Math.random()*16;x+=Math.random()*24-12;bolt.push([x,y])}}
-    if(lightning>.05){ctx.fillStyle=rgba("#e9f0ff",.35*lightning);ctx.fillRect(0,0,W,H);
+    (settings.reduceMotion?drops.slice(0,35):drops).forEach(p=>{p.y+=p.v*k;p.x-=p.v*.35*k;if(p.y>H){p.y=-10;p.x=Math.random()*(W+60)}ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+3,p.y-9)});ctx.stroke();
+    if(stormy()&&Math.random()<.004*k){lightning=1;sfx("thunder");let x=60+Math.random()*560,y=0;bolt=[[x,y]];while(y<SEA-20){y+=12+Math.random()*16;x+=Math.random()*24-12;bolt.push([x,y])}}
+    if(lightning>.05){if(!settings.reduceMotion){ctx.fillStyle=rgba("#e9f0ff",.35*lightning);ctx.fillRect(0,0,W,H)}
       if(bolt){ctx.strokeStyle=rgba("#ffffff",lightning);ctx.lineWidth=2;ctx.beginPath();bolt.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke()}}
     lightning*=Math.pow(.85,k)}
 }

@@ -9,13 +9,10 @@ must load every older save without losing anything.
   that grows with your upgrades, save export/import and backups.
 - **v0.4.0** Fleet & Contracts: seven ship classes incl. ghost ships, tap-to-target, guiding combo,
   Harbor Contracts, Keeper's Logbook, Shipping Lanes research.
+- **v0.5.0** Sound & Feel: synthesized ambience and effects, Settings, vibration, reduce motion,
+  number formats, gem balance pass.
 
 ## Next
-
-### v0.5 — Sound & Feel
-- Ambient waves, gulls, fog bell, foghorn in fog, thunder; tap and catch sounds. Mute and volume settings.
-- Settings: reduce motion, number format, haptics on phones.
-- Balance pass on research costs, offline earnings, and the relight curve.
 
 ### v0.6 — Keepers
 - Hire named keepers with traits (Night Owl, Birder, Storm Sailor) and assign them to the beam,

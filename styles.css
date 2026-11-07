@@ -114,3 +114,14 @@ canvas{display:block;width:100%;max-width:100%;height:auto;cursor:pointer;touch-
 .logbook b{font:600 15px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
 .fleet{margin:6px 0 0;color:var(--mute);font:400 12px var(--mono);line-height:1.6}
 @media (max-width:460px){.logbook{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------- v0.5 ---------- */
+.settings{display:grid;gap:4px;margin-top:4px}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line);color:var(--ink);cursor:pointer}
+.set span{display:grid}
+.set small{color:var(--mute);font-size:12px}
+.set input[type=range]{width:130px;accent-color:var(--lamp)}
+.set input[type=checkbox]{width:18px;height:18px;accent-color:var(--lamp)}
+.set select{font:600 13px var(--mono);background:var(--sea);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.set-note{display:block;color:var(--mute);font-size:12px;padding-top:8px}
+[data-sound][aria-pressed="false"]{color:var(--mute)}
