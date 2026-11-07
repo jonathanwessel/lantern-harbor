@@ -31,6 +31,8 @@ export const defaults = () => ({
   skuas:0, raids:0, stolen:0,
   // v0.9: this week's season progress
   season:null, seasonsDone:0,
+  // v1.0: first-run tutorial step (99 = done)
+  tutorial:0,
 });
 
 /** The live game state. Other modules import this binding and mutate its fields. */
@@ -45,6 +47,7 @@ const KNOWN_HARBORS = ["lantern","fjord","reef"];
 export function hydrate(s) {
   const out = {...defaults(), ...s};
   if (!KNOWN_HARBORS.includes(out.harbor)) out.harbor = "lantern";
+  if (s.tutorial === undefined) out.tutorial = 99; // saves from before the tutorial existed: already playing, skip it
   if (!out.visited.includes(out.harbor)) out.visited = [...out.visited, out.harbor];
   if (!s.v) { out.v = SAVE_VERSION; out.lifetime = Math.max(out.coins, out.ships*10); out.run = out.lifetime; }
   return out;

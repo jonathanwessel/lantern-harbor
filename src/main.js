@@ -10,6 +10,7 @@ import { openModal, initDialogs, toast } from "./ui/dialogs.js";
 import { tab, renderAll, renderRelight, renderGoals, refreshUp, refreshResearch, researchReady, checkLab, initPanels } from "./ui/panels.js";
 import { draw, hasGold, spawnGold, spawnBird, birdCount, comboState, initScene, spawnRaider, startRaid, raidActive, raiderCount, flareState } from "./scene.js";
 import { ensureContracts, contractsReady } from "./contracts.js";
+import { tickTutorial, initTutorial } from "./tutorial.js";
 import { unlock, ambience, sfx } from "./audio.js";
 import { addXp, ensureCandidates, lookMult } from "./keepers.js";
 import { keepersReady, refreshKeepers, renderKeepers } from "./ui/keepersPanel.js";
@@ -32,9 +33,10 @@ function everySecond(){
   if(!hasGold()&&Math.random()<goldChance())spawnGold();
   // birds: gulls are common (twice as common by day), albatrosses are rare, storm petrels only fly in storms
   if(birdCount()<3){const b=(1+.3*lvl("birds"))*lookMult()*mods().birds*smod().birds;
-    if(Math.random()<b*(isDay()?2:1)/30)spawnBird("gull");
-    else if(Math.random()<b/300)spawnBird("albatross");
-    else if(stormy()&&Math.random()<b/25)spawnBird("petrel")}
+    // capped so stacked bonuses (season + harbor + research + keepers) can't fill the sky
+    if(Math.random()<Math.min(1/6,b*(isDay()?2:1)/30))spawnBird("gull");
+    else if(Math.random()<Math.min(1/60,b/300))spawnBird("albatross");
+    else if(stormy()&&Math.random()<Math.min(1/8,b/25))spawnBird("petrel")}
   // raiders: lone skuas now and then, and occasional raids, once the harbor is worth robbing
   if(S.lifetime>=2000){
     if(!raidActive()&&Math.random()<smod().raids/200)startRaid(3+Math.floor(Math.random()*4));
@@ -67,6 +69,7 @@ function loop(t){
     const fs=flareState(),fb=$("flares");if(fs.raiders||fs.ammo<fs.max){fb.hidden=false;fb.textContent=`Flares ${"●".repeat(fs.ammo)}${"○".repeat(fs.max-fs.ammo)}`+(fs.raid?` · Raid: ${fs.raid} left`:fs.raiders?` · ${fs.raiders} skua${fs.raiders>1?"s":""}`:"")}else fb.hidden=true;
     ambience({fog:foggy()?1:0, storm:stormy()?1:0, day:daylight(), bell:!!S.owned.bell});
     $("gdot").hidden=!(dailyReady()||unclaimed().length||contractsReady()||seasonClaimable());$("rdot").hidden=pendingLumens()<1;$("resdot").hidden=!researchReady();$("kdot").hidden=!keepersReady();
+    tickTutorial();
     if(tab==="up")refreshUp();
     if(tab==="research")refreshResearch();
     if(tab==="keepers")refreshKeepers();
@@ -103,6 +106,14 @@ welcomeBack();
 whenLocked(()=>openModal({title:"Open in another tab",body:"Lantern Harbor was saved from another tab or window, so this one has paused saving to protect your progress. Reload to continue here with the latest save.",yes:"Reload",no:null,cls:"glass",cb:()=>location.reload()}));
 $("ver").textContent="v"+VERSION;
 watchForUpdates();
+initTutorial();
+
+/* Installable app: offline cache (release builds only) and an Install button where the browser offers one. */
+if(import.meta.env.PROD&&"serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(e=>console.warn("Lantern Harbor: offline cache unavailable",e)))}
+let installEvt=null;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("install").hidden=false});
+$("install").onclick=async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;$("install").hidden=true};
+addEventListener("appinstalled",()=>{$("install").hidden=true;toast("Lantern Harbor installed")});
 
 /* Browsers only allow sound after a tap or key press. */
 addEventListener("pointerdown", unlock, {capture:true});

@@ -96,7 +96,7 @@ function guide(s, auto){
 function catchBird(b, auto=false){
   birds.splice(birds.indexOf(b),1); S.birds++; track("bird");
   const info = BIRDS[b.kind], r = gullReward()*(b.kind==="albatross"?2:1)*(auto?lureMult():1); earn(r);
-  if (b.kind==="albatross") { S.albatross++; track("albatross"); S.frenzyUntil = Math.max(Date.now(),S.frenzyUntil)+15000;
+  if (b.kind==="albatross") { S.albatross++; track("albatross"); S.frenzyUntil = Math.min(Date.now()+30000, Math.max(Date.now(),S.frenzyUntil)+15000); // stacks to 30s at most
     floats.push({x:b.x,y:b.y-26,a:1.5,t:"Tailwind! taps ×5",c:"#fff6c7"}); }
   if (b.kind==="petrel") { S.gems += 1; floats.push({x:b.x,y:b.y-26,a:1.3,t:"+◆1",c:"#b98cff"}); }
   sfx("bird"); if (!auto) buzz([10,30,10]);

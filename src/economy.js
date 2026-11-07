@@ -51,7 +51,8 @@ export const autoCooldown = () => [0,10,8,6,4.5,3][lvl("auto")]||0;
 export const lureDelay = () => [0,5,4,3,2.5,2][lvl("lure")]||0;
 export const lureMult = () => .5+.1*lvl("lure");
 /** Golden ship chance per second. */
-export const goldChance = () => (S.charter?1/45:1/90)*(1+.2*lvl("lookout"))*lookMult()*mods().gold;
+/** Golden ship chance per second, capped at one every ~20s however the bonuses stack. */
+export const goldChance = () => Math.min(1/20, (S.charter?1/45:1/90)*(1+.2*lvl("lookout"))*lookMult()*mods().gold);
 
 /* Raiders and flares. */
 export const flareMax = () => 3 + lvl("flares");

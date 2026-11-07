@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.0.0 — Take It With You
+
+**New**
+- **Install it as an app.** Lantern Harbor now has an app icon and a web app manifest. In
+  Chrome or Edge, an **Install app** button appears under the panels (or use the browser's
+  install icon) to get a desktop/home-screen app that opens full screen.
+- **Works offline.** After one visit the whole game, fonts included, is cached on the device, so
+  it loads even when the play server is off. A new cache comes with each release, and the
+  "new version" notice still works whenever the server is reachable.
+- **First-run tips** for brand-new players: tap the lamp, guide a ship, buy an upgrade.
+  Skippable, and players with an existing save never see them.
+
+**Balance**
+- Golden ships are capped at about one every 20 seconds, however many bonuses stack. Before this,
+  Sunreef Atoll with every golden-ship bonus could spawn one every ~12s, worth ~300 gems an hour.
+- Bird arrivals are capped (gulls at most every ~6s, albatrosses ~60s, petrels ~8s), so Spring at
+  the Atoll with full Ornithology no longer fills the sky nonstop.
+- Albatross Tailwinds stack to at most 30 seconds, instead of chaining indefinitely.
+- Normal play is unaffected: the caps only kick in when several bonuses stack up.
+
 ## v0.9.0 — Seasons
 
 **New**

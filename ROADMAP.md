@@ -17,13 +17,15 @@ must load every older save without losing anything.
 - **v0.8.0** Flares & Raiders: skua raids that steal light, the Flare Gun, Flare Battery research,
   Sharpshooter keepers.
 - **v0.9.0** Seasons: weekly rotating seasons with rules, visuals, challenges and seasonal beams.
+- **v1.0.0** Take It With You: installable app, offline play, first-run tips, balance caps.
 
 ## Next
 
-### v1.0 — Take It With You
-- Install as an app (PWA): home-screen icon, full screen, works offline.
-- Play on your phone: host the release somewhere reachable (needs your OK, since it publishes the game).
-- First-run tutorial and a balance pass across all harbors and seasons.
+### Ideas for after 1.0
+- Play on your phone: host the release somewhere public (needs your OK, since it publishes the game).
+- More harbors and a seasonal event calendar (one-off events on top of the weekly seasons).
+- Keeper stories and named ships with short voyages.
+- Accessibility pass: screen-reader labels for the scene, larger tap targets option.
 
 ### Later
 - Cloud save, so progress follows you without export codes.

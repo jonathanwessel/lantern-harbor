@@ -15,7 +15,11 @@ npm run play      # the stable release, at http://localhost:5173  (play here)
 npm run dev       # live development build, at http://localhost:5174
 ```
 
-Play on **5173** and develop on **5174**. They are different origins, so each keeps its own save and
+```bash
+npm run stage     # build the current code and serve it at http://localhost:5175 (test a release before shipping)
+```
+
+Play on **5173**, develop on **5174**, and check production builds (offline cache, install) on **5175**. They are different origins, so each keeps its own save and
 nothing done in dev can touch the save you play with. The play server only ever serves tagged
 releases from `live/`; when a new one is published, the running game shows "Version X is ready" and
 reloads on your click, saving first.
@@ -27,6 +31,12 @@ reloads on your click, saving first.
 3. `npm run release` tags `v<version>` at HEAD and builds that tag (from a clean checkout) into `live/`.
 
 `npm run release -- v0.2.0` rebuilds an older tag, which is also how to roll back.
+
+## Install and offline
+
+Release builds include a web app manifest and a service worker (`sw.js`, generated per release in
+`vite.config.js`). The game can be installed from Chrome/Edge ("Install app" button) and runs offline
+after one visit. Navigations are network-first, so a running game still picks up new releases.
 
 ## Saves
 
@@ -58,6 +68,8 @@ reloads on your click, saving first.
 | `src/scene.js` | Canvas harbor scene and tap handling |
 | `src/ui/panels.js` | Tab panels and button actions |
 | `src/ui/dialogs.js` | Modal and toast |
+| `src/tutorial.js` | First-run tips |
+| `public/` | App icons and manifest |
 | `src/main.js` | Startup, main loop, offline earnings, update notice |
 
 See `ROADMAP.md` for what's next.

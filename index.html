@@ -7,6 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="/styles.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0b1a2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="A tap-and-idle lighthouse game. Guide ships, catch birds, fend off skuas, and light up new harbors.">
 </head>
 <body data-harbor="lantern">
 <div class="wrap">
@@ -25,6 +32,7 @@
   <div class="scene">
     <div class="stats">Per tap <b id="ptap">1</b><br>Per second <b id="psec">0</b><br>Ships guided <b id="ships">0</b><br><span id="cond"></span></div>
     <div class="badges"><div class="badge boost" id="boost" hidden></div><div class="badge frenzy" id="frenzy" hidden></div><div class="badge combo" id="combo" hidden></div><div class="badge flares" id="flares" hidden></div><div class="badge" id="wx" hidden></div><div class="badge goldb" id="goldb" hidden>Golden ship! Tap it</div></div>
+    <div class="coach" id="coach" hidden><span id="coach-text"></span><button class="ghost sm" id="coach-skip">Skip tips</button></div>
     <canvas id="cv" width="680" height="300" aria-label="Lighthouse. Tap to shine the beam and earn light." role="button" tabindex="0"></canvas>
   </div>
   <p class="hint">Tap to guide ships (tap a ship to pick it). Guide ships back to back for a combo. Freighters and ghost ships pay the most. Tap birds and golden ships for big bonuses. Skuas steal light: tap the sky near one to fire a flare.</p>
@@ -46,7 +54,7 @@
   <section id="p-shop" class="list" hidden></section>
   <section id="p-rev" hidden></section>
 
-  <footer class="savebar"><span class="ver" id="ver"></span><div class="savebtns"><button class="ghost sm" data-sound aria-pressed="true">Sound on</button><button class="ghost sm" data-settings>Settings</button><button class="ghost sm" data-export>Export save</button><button class="ghost sm" data-import>Import save</button><button class="ghost sm" data-backups>Backups</button></div></footer>
+  <footer class="savebar"><span class="ver" id="ver"></span><div class="savebtns"><button class="ghost sm" id="install" hidden>Install app</button><button class="ghost sm" data-sound aria-pressed="true">Sound on</button><button class="ghost sm" data-settings>Settings</button><button class="ghost sm" data-export>Export save</button><button class="ghost sm" data-import>Import save</button><button class="ghost sm" data-backups>Backups</button></div></footer>
 </div>
 
 <div class="modal" id="modal" hidden>
