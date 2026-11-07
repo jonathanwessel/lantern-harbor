@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.6.0 — Keepers
+
+**New**
+- **Keepers tab.** Hire named keepers with light (5K for the first, ×8 for each after, up to 8)
+  and give each one a post:
+  - *Lamp Room*: +10% light per tap per keeper level.
+  - *Dock*: +10% light per guided ship per level.
+  - *Observatory*: research 5% faster per level.
+  - *Lookout*: golden ships and birds 4% more often per level.
+- **Keepers level up** the longer they serve, up to level 10 (about 2.7 hours on duty), and keep
+  training while you're away. They stay with you when you relight.
+- **Traits.** Every keeper has one, with a home post where they work ×1.5 and add a perk:
+  Night Owl (Lamp Room, doubled at night), Old Salt and Storm Sailor (Dock), Scholar
+  (Observatory, half-price research rushes), Birder and Eagle Eye (Lookout).
+- Choose from three candidates, or pay 3 gems for new faces. Moving a keeper to a filled post
+  swaps the two.
+- **You can see your crew**: a keeper with a lantern walks the lamp gallery, another waits on the
+  dock, a lookout watches from the cliff with a spyglass, and the observatory window glows.
+- 3 new achievements: First Mate, Full Watch, Seasoned Keeper.
+
 ## v0.5.0 — Sound & Feel
 
 **New**

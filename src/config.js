@@ -115,3 +115,35 @@ ACH.push(
   {id:"combo10",name:"Chain of Lights",desc:"Reach a 10-ship guiding combo",gems:10,cur:S=>S.bestCombo,goal:10},
   {id:"contracts10",name:"Harbor Contractor",desc:"Complete 10 contracts",gems:15,cur:S=>S.contractsDone,goal:10},
 );
+
+/* ---------- Keepers ---------- */
+export const POSTS = [
+  {id:"lamp",name:"Lamp Room",desc:"+10% light per tap per keeper level"},
+  {id:"dock",name:"Dock",desc:"+10% light per guided ship per keeper level"},
+  {id:"obs",name:"Observatory",desc:"Research 5% faster per keeper level"},
+  {id:"look",name:"Lookout",desc:"Golden ships and birds 4% more often per keeper level"},
+];
+
+/* Each trait has a home post. At home a keeper works x1.5 and their perk applies. */
+export const TRAITS = {
+  nightowl:{name:"Night Owl",home:"lamp",perk:"Doubles the Lamp Room bonus at night"},
+  salt:{name:"Old Salt",home:"dock",perk:"Auto-guided ships pay +5% more per level"},
+  storm:{name:"Storm Sailor",home:"dock",perk:"Fog and storm ship bonus +0.1× per level"},
+  scholar:{name:"Scholar",home:"obs",perk:"Finishing research early costs half the gems"},
+  birder:{name:"Birder",home:"look",perk:"Birds pay +10% per level"},
+  eagle:{name:"Eagle Eye",home:"look",perk:"Golden ships pay +10% per level"},
+};
+
+/** Keeper level from seconds of service: 1 to start, then levels at 2m, 8m, 18m, 32m ... 2.7h for 10. */
+export const keeperLevel = xp => Math.min(10, 1 + Math.floor(Math.sqrt(Math.max(0,xp)/120)));
+
+export const KEEPER_NAMES = ["Agnes Pell","Tobias Wren","Mara Quill","Elias Thorne","Nell Harrow","Silas Moor","Ida Fenwick","Jory Calder",
+  "Wynn Abernathy","Rosalind Tate","Ezra Locke","Hattie Bramble","Caspian Reed","Odile Marsh","Bram Kettle","Lark Penhallow",
+  "Morwen Ash","Tamsin Gale","Arlo Finch","Bess Trelawny","Corin Hale","Delphine Rook","Gideon Pike","Juniper Vane",
+  "Kit Rowan","Linnea Holt","Merrick Shaw","Poppy Carrow","Quentin Fogg","Sable Dunmore"];
+
+ACH.push(
+  {id:"keeper1",name:"First Mate",desc:"Hire your first keeper",gems:5,cur:S=>S.keepers.length,goal:1},
+  {id:"crew4",name:"Full Watch",desc:"Staff all four posts",gems:15,cur:S=>new Set(S.keepers.filter(k=>k.post).map(k=>k.post)).size,goal:4},
+  {id:"keeper10",name:"Seasoned Keeper",desc:"Train a keeper to level 10",gems:25,cur:S=>Math.max(0,...S.keepers.map(k=>keeperLevel(k.xp))),goal:10},
+);

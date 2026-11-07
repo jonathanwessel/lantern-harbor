@@ -16,6 +16,7 @@ import { daylight, dayPhase, foggy, stormy, badWeather, isNight } from "./world.
 import { fmt, $ } from "./util.js";
 import { sfx } from "./audio.js";
 import { settings, buzz } from "./settings.js";
+import { keeperAt } from "./keepers.js";
 
 export const W = 680, H = 300;
 const LX = 340, LY = 67, SEA = 190, REACH = 480;
@@ -307,6 +308,22 @@ function drawWeather(d,t,k){
     lightning*=Math.pow(.85,k)}
 }
 
+/** A tiny keeper figure with a lantern. */
+function figure(x,y,d,t,k=1,glass=false){
+  ctx.save();ctx.translate(x,y);ctx.scale(k,k);
+  const c=mix("#0d1824","#2a3442",d);ctx.fillStyle=c;ctx.fillRect(-1.5,-7,3,5);ctx.fillRect(-1.5,-2,1.2,2);ctx.fillRect(.3,-2,1.2,2);ell(0,-8.5,1.6,1.6);
+  if(glass){ctx.strokeStyle=mix("#3a4a5a","#2a3442",d);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(1,-8);ctx.lineTo(5,-10);ctx.stroke()}
+  const g=1-d,lx=glass?-3:2;ctx.fillStyle=rgba("#ffcf7a",.5+.5*g);ctx.fillRect(lx,-5+Math.sin(t/300)*.4,1.6,2);if(g>.3){ctx.fillStyle=rgba("#ffcf7a",.18*g);ell(lx+.8,-4,6,6)}
+  ctx.restore();
+}
+
+function drawKeepers(d,t){
+  if(keeperAt("lamp")){const x=325+(Math.sin(t/4200)+1)*15;figure(x,79,d,t,1.3)}
+  if(keeperAt("dock"))figure(S.owned.pilot?424:412,S.owned.pilot?201:197,d,t,1.5);
+  if(keeperAt("look"))figure(590,176,d,t,1.1,true);
+  if(keeperAt("obs")&&d<.7){ctx.fillStyle=rgba("#ffcf7a",.35*(1-d));ctx.fillRect(390,186,4,4)}
+}
+
 /* ---------- Frame ---------- */
 export function draw(dt=1/60){
   const k=dt*60,col=COLORS.find(c=>c.id===S.color).hex,t=performance.now(),d=daylight(),ph=dayPhase();
@@ -322,6 +339,7 @@ export function draw(dt=1/60){
   if(behind)drawBeam(d,col,false);
   drawIsland(d,t,col);
   drawTower(d,col,t);
+  drawKeepers(d,t);
   // ghost ships fade away at daybreak
   ships.forEach(s=>{s.x+=s.v*k;if(s.type==="ghost"&&d>.3&&!s.lit)s.fade-=.01*k;drawShip(s,d,col,t)});
   ships=ships.filter(s=>s.x<W+60&&s.fade>0);while(ships.length<maxShips())spawnShip();

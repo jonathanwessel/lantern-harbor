@@ -23,6 +23,8 @@ export const defaults = () => ({
   research:{}, lab:null, birds:0, albatross:0, weatherShips:0, frenzyUntil:0,
   // v0.4
   contracts:[], contractsDone:0, bestCombo:0, shipsBy:{}, playTime:0,
+  // v0.6
+  keepers:[], candidates:[],
 });
 
 /** The live game state. Other modules import this binding and mutate its fields. */

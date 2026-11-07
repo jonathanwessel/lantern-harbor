@@ -11,12 +11,9 @@ must load every older save without losing anything.
   Harbor Contracts, Keeper's Logbook, Shipping Lanes research.
 - **v0.5.0** Sound & Feel: synthesized ambience and effects, Settings, vibration, reduce motion,
   number formats, gem balance pass.
+- **v0.6.0** Keepers: hire, assign to four posts, level up, traits with home-post perks.
 
 ## Next
-
-### v0.6 — Keepers
-- Hire named keepers with traits (Night Owl, Birder, Storm Sailor) and assign them to the beam,
-  the observatory or the lookout.
 
 ### v0.7 — New Shores (new theme)
 - After a few relights, unlock a second harbor with its own look and rules: an Arctic fjord

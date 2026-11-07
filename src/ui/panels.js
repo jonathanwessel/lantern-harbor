@@ -8,6 +8,7 @@ import { fmt, $ } from "../util.js";
 import { toast, openModal, closeModal, copyText } from "./dialogs.js";
 import { sfx } from "../audio.js";
 import { settings, setSetting, onSettings } from "../settings.js";
+import { renderKeepers, keeperClick, keeperChange } from "./keepersPanel.js";
 
 /** Currently selected tab id. */
 export let tab = "up";
@@ -100,7 +101,7 @@ function logbookHtml() {
     ["Light, all time", fmt(S.lifetime)], ["Time played", hms(S.playTime)], ["Lamp taps", fmt(S.taps)],
     ["Ships guided", fmt(S.ships)], ["Best combo", S.bestCombo], ["Golden ships", S.golden],
     ["Birds caught", S.birds], ["Contracts done", S.contractsDone], ["Research levels", lv],
-    ["Relights", S.relights], ["Lumens", S.lumens], ["Achievements", `${S.ach.length} / ${ACH.length}`],
+    ["Relights", S.relights], ["Keepers", S.keepers.length], ["Achievements", `${S.ach.length} / ${ACH.length}`],
   ];
   const fleet = Object.entries(SHIPS).filter(([k])=>S.shipsBy[k]).map(([k,c])=>`${c.name} ${fmt(S.shipsBy[k])}`).join(" · ");
   return `<div class="section-h">Keeper's logbook</div><div class="logbook">${cells.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>
@@ -125,7 +126,7 @@ export function renderGoals() {
 export function renderRelight() {
   const p=pendingLumens(),per=perLumen();
   $("p-relight").innerHTML=`<div class="relight"><h3>Relight the lamp</h3>
-  <p>Douse the lamp and start the night over. You lose your light and upgrades, but you keep gems, beam colors, research, purchases, and achievements, and you earn lumens. Each lumen permanently adds ${pct(per)}% to all light you earn.</p>
+  <p>Douse the lamp and start the night over. You lose your light and upgrades, but you keep gems, beam colors, research, keepers, purchases, and achievements, and you earn lumens. Each lumen permanently adds ${pct(per)}% to all light you earn.</p>
   <div class="nums"><div class="num"><span>Light this run</span><b id="r-run">${fmt(S.run)}</b></div><div class="num"><span>Lumens if you relight</span><b>+${p}</b></div><div class="num"><span>Current bonus</span><b>+${pct(S.lumens*per)}%</b></div></div>
   <p>${p<1?`You need 100K light this run to earn your first lumen.`:`After relighting, your bonus becomes +${pct((S.lumens+p)*per)}%.`}</p>
   <div><button class="buy glass" data-relight ${p<1?"disabled":""}>Relight for ✦ ${p}</button></div></div>`;
@@ -149,7 +150,7 @@ export function renderRev() {
   ${n?S.purchases.slice(-8).reverse().map(p=>`${new Date(p.t).toLocaleTimeString()} · ${p.name} · $${p.usd.toFixed(2)}`).join("<br>"):"No purchases yet. Try the Gem Shop tab."}</div>`;
 }
 
-const RENDER = {up:renderUp, research:renderResearch, goals:renderGoals, relight:renderRelight, shop:renderShop, rev:renderRev};
+const RENDER = {up:renderUp, research:renderResearch, keepers:renderKeepers, goals:renderGoals, relight:renderRelight, shop:renderShop, rev:renderRev};
 
 /** Re-render the currently visible panel. */
 export function renderAll() { RENDER[tab](); }
@@ -200,6 +201,7 @@ function showSettings() {
 }
 
 function onSetting(e) {
+  if (e.type === "change" && keeperChange(e)) return;
   const el = e.target.closest("[data-set]"); if (!el) return;
   const k = el.dataset.set, v = el.type === "checkbox" ? el.checked : el.type === "range" ? +el.value : el.value;
   setSetting(k, v);
@@ -210,6 +212,7 @@ const soundLabel = () => { const b = document.querySelector("[data-sound]"); if 
 
 function onClick(e) {
   const b=e.target.closest("button");if(!b||b.disabled)return;const d=b.dataset;
+  if(keeperClick(d))return;
   if(d.qty){S.buyQty=d.qty==="max"?"max":+d.qty;renderUp();save()}
   if(d.up){const u=UPGRADES.find(x=>x.id===d.up),n=qtyFor(u),c=costN(u,n);if(S.coins>=c){S.coins-=c;S.owned[u.id]=(S.owned[u.id]||0)+n;sfx("buy");renderUp();save()}}
   if(d.res){const r=RESEARCH.find(x=>x.id===d.res),c=researchCost(r);
@@ -222,7 +225,7 @@ function onClick(e) {
   if(d.swap){const i=+d.swap;if(S.contracts[i]&&S.gems>=SWAP_COST){S.gems-=SWAP_COST;replaceContract(i);renderGoals();save()}}
   if(d.ach){const a=ACH.find(x=>x.id===d.ach);if(a&&!S.ach.includes(a.id)&&a.cur(S)>=a.goal){S.ach.push(a.id);S.gems+=a.gems;sfx("chime");toast(`${a.name}: ◆ ${a.gems}`);renderGoals();save()}}
   if("relight" in d){const p=pendingLumens();if(p<1)return;
-    openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, and purchases stay.`,yes:"Relight",cls:"glass",cb:()=>{
+    openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, keepers, and purchases stay.`,yes:"Relight",cls:"glass",cb:()=>{
       S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};sfx("relight");toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);renderAll();save()}})}
   if(d.pack){const p=PACKS.find(x=>x.id===d.pack);
     openModal({title:p.name,body:p.desc||`Adds ${p.gems} gems to your account.`,price:"$"+p.usd.toFixed(2),note:true,yes:"Buy",cb:()=>{

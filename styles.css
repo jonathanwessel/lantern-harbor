@@ -125,3 +125,15 @@ canvas{display:block;width:100%;max-width:100%;height:auto;cursor:pointer;touch-
 .set select{font:600 13px var(--mono);background:var(--sea);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
 .set-note{display:block;color:var(--mute);font-size:12px;padding-top:8px}
 [data-sound][aria-pressed="false"]{color:var(--mute)}
+
+/* ---------- v0.6 ---------- */
+.posts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.post{background:var(--sea);border-radius:8px;padding:10px 12px;display:grid;gap:2px;min-width:0;border:1px solid transparent}
+.post span{font:400 11px var(--mono);color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.post b{font-size:15px}
+.post small{color:var(--glass);font:400 12px var(--mono)}
+.post.empty{border:1px dashed var(--line)} .post.empty b{color:var(--mute)} .post.empty small{color:var(--mute)}
+.row.keeper.idle{border-style:dashed}
+.perk{color:var(--mute);font-size:12px} .perk.on{color:var(--lamp-soft)}
+.post-sel{font:600 13px var(--mono);background:var(--sea);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;max-width:170px}
+@media (max-width:460px){.posts{grid-template-columns:1fr}.post-sel{max-width:130px}}
