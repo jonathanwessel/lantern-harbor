@@ -14,7 +14,6 @@
 html,body{background:var(--sea);color:var(--ink)}
 body{font-family:var(--display);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
 .wrap{max-width:720px;margin:0 auto;display:grid;gap:18px}
-.test{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--sea);background:var(--glass);padding:6px 10px;border-radius:6px;justify-self:start}
 header{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
 h1{font-weight:800;font-size:clamp(28px,6vw,40px);margin:0;letter-spacing:-.02em;text-wrap:balance}
 h1 span{color:var(--lamp)}
@@ -74,12 +73,9 @@ canvas{display:block;width:100%;max-width:100%;height:auto;cursor:pointer;touch-
 .card{background:var(--sea-2);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:380px;width:100%;display:grid;gap:12px}
 .card h2{margin:0;font-size:20px}
 .card p{margin:0;color:var(--mute);font-size:14px;line-height:1.5}
-.card .price{font:600 26px var(--mono);color:var(--good)}
 .card .actions{display:flex;gap:8px;justify-content:flex-end}
 .ghost{background:none;border:1px solid var(--line);color:var(--ink);font:600 14px var(--display);padding:9px 14px;border-radius:8px;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sea);font:600 14px var(--display);padding:10px 16px;border-radius:8px;z-index:30;max-width:calc(100% - 32px);text-align:center}
-.ledger{font:400 12px var(--mono);color:var(--mute);background:var(--sea-2);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;line-height:1.7}
-.ledger b{color:var(--good)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ---------- v0.3 ---------- */
@@ -184,3 +180,6 @@ body[data-harbor="reef"]{--sea:#07202a;--sea-2:#0c2c38;--sea-3:#143e4c;--line:#1
 .coach .ghost{white-space:nowrap}
 @keyframes coach-in{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
 #install{border-color:var(--glass);color:var(--glass)}
+
+/* ---------- v1.1: free to play ---------- */
+.free{margin:0 0 4px;color:var(--lamp-soft);font-size:14px}

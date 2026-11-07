@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.1.0 — Free to Play
+
+- **Lantern Harbor is free.** Removed every real-money element: the gem packs, the starter pack,
+  the checkout dialog, the Revenue tab and the "test mode" banner.
+- Gems are still earned the same ways (daily rations, achievements, contracts, seasonal
+  challenges, golden and ghost ships, petrels, skuas and raids) and spent the same ways.
+- The Gem Shop now opens with what you can buy, plus an **Earn gems** guide with shortcuts to Goals.
+- Old saves keep everything, including the starter pack's 1.5× light and Sea Glass beam for
+  anyone who had them.
+
 ## v1.0.0 — Take It With You
 
 **New**

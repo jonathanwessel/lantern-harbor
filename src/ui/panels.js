@@ -1,5 +1,5 @@
-/* Tab panels (Upgrades, Research, Goals, Relight, Gem Shop, Revenue), the save bar, and their button actions. */
-import { UPGRADES, COLORS, PACKS, GEMBUYS, DAILY, ACH, RESEARCH, SHIPS } from "../config.js";
+/* Tab panels (Upgrades, Research, Keepers, Goals, Relight, Gem Shop), the save bar, and their button actions. */
+import { UPGRADES, COLORS, GEMBUYS, DAILY, ACH, RESEARCH, SHIPS } from "../config.js";
 import { ensureContracts, template, isDone, replaceContract, SWAP_COST } from "../contracts.js";
 import { S, save, lvl, exportCode, parseCode, replaceState, backups, hydrate, validate } from "../state.js";
 import { tier, perTap, perSec, earn, costN, qtyFor, pendingLumens, perLumen, today, yesterday, dailyReady,
@@ -145,32 +145,39 @@ export function renderGoals() {
 export function renderRelight() {
   const p=pendingLumens(),per=perLumen();
   $("p-relight").innerHTML=`<div class="relight"><h3>Relight the lamp</h3>
-  <p>Douse the lamp and start the night over. You lose this harbor's light and upgrades, but you keep gems, beam colors, research, keepers, purchases, and achievements, and you earn lumens. Each lumen permanently adds ${pct(per)}% to all light you earn.</p>
+  <p>Douse the lamp and start the night over. You lose this harbor's light and upgrades, but you keep gems, beam colors, research, keepers, and achievements, and you earn lumens. Each lumen permanently adds ${pct(per)}% to all light you earn.</p>
   <div class="nums"><div class="num"><span>Light this run</span><b id="r-run">${fmt(S.run)}</b></div><div class="num"><span>Lumens if you relight</span><b>+${p}</b></div><div class="num"><span>Current bonus</span><b>+${pct(S.lumens*per)}%</b></div></div>
   <p>${p<1?`You need 100K light this run to earn your first lumen.`:`After relighting, your bonus becomes +${pct((S.lumens+p)*per)}%.`}</p>
   ${(()=>{const n=nextHarbor();if(!n)return"";const left=HARBORS[n].need-S.relights;return `<p class="discover">Relight ${left} more time${left>1?"s":""} to discover <b>${HARBORS[n].name}</b>.</p>`})()}
   <div><button class="buy glass" data-relight ${p<1?"disabled":""}>Relight for ✦ ${p}</button></div></div>`;
 }
 
-/* ---------- Shop / Revenue ---------- */
+/* ---------- Shop ----------
+ * Lantern Harbor is free to play: gems are only ever earned in the game. */
+const EARN = [
+  ["Daily keeper's ration", "◆ 5–30 a day, more for a streak", "goals"],
+  ["Achievements", "◆ 5–40 each", "goals"],
+  ["Harbor contracts", "◆ 2–4 each, always three on offer", "goals"],
+  ["Seasonal challenges", "◆ 30 and a beam color each week", "goals"],
+  ["Golden ships", "◆ 1 each, tap them fast", null],
+  ["Ghost ships", "◆ 1 each, only at night", null],
+  ["Storm petrels and skuas", "◆ 1 from petrels in storms, sometimes from skuas, and for every raid repelled", null],
+];
+
 export function renderShop() {
-  const packs=PACKS.filter(p=>!(p.once&&S.starter)).map(p=>`<div class="row"><div><h3>${p.name}${p.tag?` <span class="own">${p.tag}</span>`:""}</h3><p>${p.desc||`◆ ${p.gems} gems`}</p></div>
-    <button class="buy cash" data-pack="${p.id}">$${p.usd.toFixed(2)}</button></div>`).join("");
+  const left = ACH.filter(a=>!S.ach.includes(a.id)).length;
+  const earn = EARN.map(([name, how, tab]) => `<div class="row"><div><h3>${name}</h3><p>${how}${name==="Achievements"?` <span class="own">· ${left} left to earn</span>`:""}</p></div>
+    ${tab ? `<button class="ghost sm" data-goto="${tab}">Goals</button>` : ""}</div>`).join("");
   const spend=GEMBUYS.filter(g=>!(g.once&&S[g.id])).map(g=>`<div class="row"><div><h3>${g.name}</h3><p>${g.desc}</p></div>
     <button class="buy gem" data-gb="${g.id}" ${S.gems<g.cost?"disabled":""}>◆ ${g.cost}</button></div>`).join("");
   const cols=COLORS.map(c=>{const own=S.colors.includes(c.id),on=S.color===c.id,se=c.season&&!own;
     return `<div class="row ${se?"done":""}"><div><h3><span class="swatch" style="background:${c.hex}"></span>${c.name}</h3><p>${c.season?`Seasonal beam, earned in ${({spring:"Spring Migration",summer:"Summer Regatta",autumn:"Autumn Gales",winter:"Winter Ice"})[c.season]}`:"Beam color, cosmetic only"}</p></div>
     <button class="buy ${own||se?"":"gem"}" data-col="${c.id}" ${on||se||(!own&&S.gems<c.cost)?"disabled":""}>${on?"Equipped":own?"Equip":se?"Season reward":"◆ "+c.cost}</button></div>`}).join("");
-  $("p-shop").innerHTML=`<div class="section-h">Get gems</div>${packs}<div class="section-h">Spend gems</div>${spend}<div class="section-h">Beam colors</div>${cols}`;
+  $("p-shop").innerHTML=`<p class="free">Lantern Harbor is free. Every gem is earned by playing.</p>
+    <div class="section-h">Spend gems</div>${spend}<div class="section-h">Beam colors</div>${cols}<div class="section-h">Earn gems</div>${earn}`;
 }
 
-export function renderRev() {
-  const n=S.purchases.length;
-  $("p-rev").innerHTML=`<div class="ledger">Simulated purchases this player: <b>${n}</b><br>Gross: <b>$${S.spent.toFixed(2)}</b><br>Your cut after a 30% store fee: <b>$${(S.spent*.7).toFixed(2)}</b> (at the 15% small-developer rate: $${(S.spent*.85).toFixed(2)})<br><br>
-  ${n?S.purchases.slice(-8).reverse().map(p=>`${new Date(p.t).toLocaleTimeString()} · ${p.name} · $${p.usd.toFixed(2)}`).join("<br>"):"No purchases yet. Try the Gem Shop tab."}</div>`;
-}
-
-const RENDER = {up:renderUp, research:renderResearch, keepers:renderKeepers, goals:renderGoals, relight:renderRelight, shop:renderShop, rev:renderRev};
+const RENDER = {up:renderUp, research:renderResearch, keepers:renderKeepers, goals:renderGoals, relight:renderRelight, shop:renderShop};
 
 /** Re-render the currently visible panel. */
 export function renderAll() { RENDER[tab](); }
@@ -260,15 +267,11 @@ function onClick(e) {
   if(d.swap){const i=+d.swap;if(S.contracts[i]&&S.gems>=SWAP_COST){S.gems-=SWAP_COST;replaceContract(i);renderGoals();save()}}
   if(d.ach){const a=ACH.find(x=>x.id===d.ach);if(a&&!S.ach.includes(a.id)&&a.cur(S)>=a.goal){S.ach.push(a.id);S.gems+=a.gems;sfx("chime");toast(`${a.name}: ◆ ${a.gems}`);renderGoals();save()}}
   if("relight" in d){const p=pendingLumens();if(p<1)return;
-    openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, keepers, and purchases stay.`,yes:"Relight",cls:"glass",cb:()=>{
+    openModal({title:"Relight the lamp?",body:`You'll reset your light and upgrades and gain ${p} lumen${p>1?"s":""}, a permanent +${pct(p*perLumen())}% to all light. Gems, colors, research, and keepers stay.`,yes:"Relight",cls:"glass",cb:()=>{
       const had=unlockedCount();S.lumens+=p;S.relights++;S.coins=0;S.run=0;S.owned={};sfx("relight");toast(`Relit. Bonus is now +${pct(S.lumens*perLumen())}%`);
       if(unlockedCount()>had){const id=newHarbors()[0];if(id)setTimeout(()=>{toast(`New harbor discovered: ${HARBORS[id].name}! Open the sea chart to sail there.`,5000);sfx("chime")},2600)}
       renderAll();save()}})}
-  if(d.pack){const p=PACKS.find(x=>x.id===d.pack);
-    openModal({title:p.name,body:p.desc||`Adds ${p.gems} gems to your account.`,price:"$"+p.usd.toFixed(2),note:true,yes:"Buy",cb:()=>{
-      S.gems+=p.gems;S.spent+=p.usd;sfx("gold");S.purchases.push({name:p.name,usd:p.usd,t:Date.now()});
-      if(p.once){S.starter=true;S.perm=1.5;if(!S.colors.includes("sea"))S.colors.push("sea");S.color="sea"}
-      toast(`Purchased ${p.name} (test)`);renderAll();save()}})}
+  if(d.goto){const t=document.querySelector(`.tab[data-tab="${d.goto}"]`);if(t){t.click();t.scrollIntoView({block:"nearest"})}}
   if(d.gb){const g=GEMBUYS.find(x=>x.id===d.gb);if(S.gems<g.cost)return;S.gems-=g.cost;sfx("buy");
     if(g.id==="boost"){S.boostUntil=Math.max(Date.now(),S.boostUntil)+600000;toast("Surge active: 2x light")}
     if(g.id==="skip"){const amt=perSec()*7200||perTap()*500;earn(amt);toast("Collected ☀ "+fmt(amt))}

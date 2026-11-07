@@ -5,7 +5,8 @@ ships, research permanent bonuses at the Harbor Observatory, and relight the lam
 The harbor itself grows as you play: day turns to night, fog and storms roll in, and new buildings
 appear on the island and headlands as you buy upgrades.
 
-All purchases in the Gem Shop are **simulated**. No real payments are wired up.
+Lantern Harbor is **free to play**: there are no purchases. Gems are earned in the game (daily rations,
+achievements, contracts, seasonal challenges, golden and ghost ships, birds and raids) and spent in the Gem Shop.
 
 ## Run it
 

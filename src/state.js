@@ -17,6 +17,8 @@ export const SAVE_VERSION = 2;
 const MAX_BACKUPS = 8;
 
 export const defaults = () => ({
+  // spent/purchases/starter are left over from the simulated real-money shop (removed in v1.1, the game is free).
+  // They stay so old saves load untouched; perm keeps the starter pack's 1.5x for anyone who had it.
   v:SAVE_VERSION, coins:0, gems:25, owned:{}, color:"amber", colors:["amber"], boostUntil:0, perm:1, ships:0, spent:0, purchases:[], starter:false,
   lifetime:0, run:0, taps:0, lumens:0, relights:0, golden:0, charter:false, ach:[], daily:{last:"",streak:0}, buyQty:1, lastSeen:0,
   // v0.3

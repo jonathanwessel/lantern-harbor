@@ -25,14 +25,6 @@ export const COLORS = [
   {id:"frost",name:"Frost Blue",hex:"#9fd8ff",cost:0,season:"winter"},
 ];
 
-/* Real-money packs. All purchases are SIMULATED for now. */
-export const PACKS = [
-  {id:"p1",name:"Pouch of Gems",gems:80,usd:0.99},
-  {id:"p2",name:"Chest of Gems",gems:500,usd:4.99,tag:"+25% bonus"},
-  {id:"p3",name:"Vault of Gems",gems:1200,usd:9.99,tag:"Best value"},
-  {id:"starter",name:"Keeper's Starter Pack",gems:300,usd:2.99,once:true,desc:"300 gems + Sea Glass beam + permanent 1.5x light. One per player."},
-];
-
 export const GEMBUYS = [
   {id:"boost",name:"Lighthouse Surge",desc:"2x all light for 10 minutes",cost:20},
   {id:"skip",name:"Tide Skip",desc:"Instantly collect 2 hours of light",cost:50},

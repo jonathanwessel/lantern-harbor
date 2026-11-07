@@ -18,6 +18,7 @@ must load every older save without losing anything.
   Sharpshooter keepers.
 - **v0.9.0** Seasons: weekly rotating seasons with rules, visuals, challenges and seasonal beams.
 - **v1.0.0** Take It With You: installable app, offline play, first-run tips, balance caps.
+- **v1.1.0** Free to Play: all real-money purchases removed; gems are earned only.
 
 ## Next
 

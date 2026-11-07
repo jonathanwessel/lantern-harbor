@@ -12,10 +12,9 @@ let onYes = null;
 
 /** Open the modal. `field` adds a text box: {value, placeholder, readonly}; its text is passed to cb.
  *  `html` (trusted, built by us) replaces the plain-text body when given. */
-export function openModal({title, body="", html, price, note=false, yes="OK", no="Cancel", cls="cash", cb, field}) {
+export function openModal({title, body="", html, yes="OK", no="Cancel", cls="cash", cb, field}) {
   $("m-title").textContent = title;
   if (html) $("m-body").innerHTML = html; else $("m-body").textContent = body;
-  $("m-price").hidden = !price; $("m-price").textContent = price||""; $("m-note").hidden = !note;
   const f = $("m-field");
   f.hidden = !field;
   if (field) { f.value = field.value||""; f.placeholder = field.placeholder||""; f.readOnly = !!field.readonly; }
